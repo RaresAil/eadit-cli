@@ -10,7 +10,7 @@
     "bin/*"
   ],
   "scripts": {
-    "build": "rm -rf ./bin/ && tsc -p ."
+    "build": "rm -rf ./bin/ && tsc -p . && cp -r ./src/templates ./bin/templates"
   },
   "repository": {
     "type": "git",

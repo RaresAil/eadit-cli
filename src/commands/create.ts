@@ -4,11 +4,14 @@ import os from 'os';
 import { execSync } from 'child_process';
 import nodePath from 'path';
 import fs from 'fs';
+import Config from '../index';
 
 const gitUrl = 'https://github.com/RaresAil/express-adr-dependency-injection-typescript-example.git';
 
 interface ModuleData {
   packageName: string;
+  devPackage?: string;
+  template?: string;
   databases?: {
     [key: string]: {
       packageName: string;
@@ -22,7 +25,9 @@ interface ModulesData {
 
 const modulesData: ModulesData = {
   Mongoose: {
-    packageName: 'mongoose'
+    packageName: 'mongoose',
+    devPackage: '@types/mongoose',
+    template: 'mongoose.txt'
   },
   'Sequelize ORM': {
     packageName: 'sequelize',
@@ -45,7 +50,8 @@ const modulesData: ModulesData = {
     }
   },
   'JSON Web Token (jsonwebtoken)': {
-    packageName: 'jsonwebtoken'
+    packageName: 'jsonwebtoken',
+    devPackage: '@types/jsonwebtoken'
   }
 };
 
@@ -133,6 +139,8 @@ export default () => {
         const { modules } = await prompt(moduleQuestions);
 
         let modulesToInstall: string[] = [];
+        let devModulesToInstall: string[] = [];
+        let templatesToInstall: string[] = [];
         let requestDatabse = false;
         (modules as string[]).forEach((moduleName) => {
           if (!requestDatabse) {
@@ -143,6 +151,20 @@ export default () => {
             ...modulesToInstall,
             modulesData[moduleName].packageName
           ];
+
+          if (modulesData[moduleName].devPackage) {
+            devModulesToInstall = [
+              ...devModulesToInstall,
+              modulesData[moduleName].devPackage!
+            ];
+          }
+
+          if (modulesData[moduleName].template) {
+            templatesToInstall = [
+              ...templatesToInstall,
+              modulesData[moduleName].template!
+            ];
+          }
         });
 
         if (requestDatabse) {
@@ -158,6 +180,11 @@ export default () => {
         const npmInstallModules = [
           'npm i --save',
           ...modulesToInstall
+        ].join(' ');
+
+        const npmInstallDevModules = [
+          'npm i -D',
+          ...devModulesToInstall
         ].join(' ');
 
         fs.mkdirSync(fullPath, {
@@ -200,7 +227,7 @@ export default () => {
         console.log('Cloning complete.');
 
         console.log('Installing dependencies...');
-        execSync(`cd ${fullPath}`);
+        execSync(`cd "${fullPath}"`);
         execSync('npm i');
         console.log('Dependencies installed.');
 
@@ -208,6 +235,27 @@ export default () => {
           console.log(`Installing extra dependencies... (${modulesToInstall.length})`);
           execSync(npmInstallModules);
           console.log('Extra dependencies installed.');
+        }
+
+        if (devModulesToInstall.length > 0) {
+          console.log(`Installing extra dev-dependencies... (${devModulesToInstall.length})`);
+          execSync(npmInstallDevModules);
+          console.log('Extra dev-dependencies installed.');
+        }
+
+        if (templatesToInstall.length > 0) {
+          console.log(`Installing templates for extra dependencies... (${modulesToInstall.length})`);
+          templatesToInstall.forEach((tempalte) => {
+            const templatePath = nodePath.join(Config.root, 'templates', tempalte);
+            const destination = nodePath.join(fullPath, 'src', 'domain', 'entities');
+
+            if (fs.existsSync(templatePath) && fs.existsSync(destination)) {
+              fs.copyFileSync(templatePath, nodePath.join(destination, `${tempalte.replace('.txt', '')}Model.ts`));
+            } else {
+              console.error(`Unable to install template "${tempalte.replace('.txt', '')}"`);
+            }
+          });
+          console.log('Templates for extra dependencies installed.');
         }
 
         console.log('Done.');
