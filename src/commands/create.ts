@@ -1,11 +1,13 @@
 import program from 'commander';
-import { CheckboxQuestion, prompt } from 'inquirer';
+import { prompt } from 'inquirer';
 import os from 'os';
 import { execSync } from 'child_process';
 import nodePath from 'path';
 import fs from 'fs';
 import Config from '../index';
 import colors from 'colors/safe';
+import AsyncLock from 'async-lock';
+const lock = new AsyncLock();
 
 const gitUrl = 'https://github.com/RaresAil/express-adr-dependency-injection-typescript-example.git';
 
@@ -22,17 +24,21 @@ interface ReplacementsObject {
   [key: string]: string[];
 }
 
+interface ReplacementOb {
+  type: ReplaceType;
+  with: string;
+  ask?: string[];
+}
+
 interface ModuleData {
   packageName: string;
   devPackage?: string;
   template?: string;
-  replacements?: {
-    type: ReplaceType;
-    with: string;
-  }[];
+  replacements?: ReplacementOb[];
   databases?: {
     [key: string]: {
       packageName: string;
+      dialectName: string;
     };
   };
 }
@@ -67,7 +73,10 @@ const modulesData: ModulesData = {
       },
       {
         type: ReplaceType.IndexInjectVar,
-        with: "Injector.inject('MongooseConfig', { connectionURL: 'URL HERE!' }, InjectType.Variable);"
+        with: "Injector.inject('MongooseConfig', { connectionURL: 'MONGO_CONN_URL' }, InjectType.Variable);",
+        ask: [
+          'MONGO_CONN_URL'
+        ]
       },
       {
         type: ReplaceType.IndexInjectVar,
@@ -111,19 +120,24 @@ const modulesData: ModulesData = {
     template: 'sequelize.txt',
     databases: {
       Postgres: {
-        packageName: 'pg pg-hstore'
+        packageName: 'pg pg-hstore',
+        dialectName: 'postgres'
       },
       'Maria DB': {
-        packageName: 'mariadb'
+        packageName: 'mariadb',
+        dialectName: 'mariadb'
       },
       'MySQL 2': {
-        packageName: 'mysql2'
+        packageName: 'mysql2',
+        dialectName: 'mysql'
       },
       'SQLite 3': {
-        packageName: 'sqlite3'
+        packageName: 'sqlite3',
+        dialectName: 'sqlite'
       },
       'Microsoft SQL Server ': {
-        packageName: 'tedious'
+        packageName: 'tedious',
+        dialectName: 'mssql'
       }
     },
     replacements: [
@@ -141,13 +155,21 @@ const modulesData: ModulesData = {
 Injector.inject('Sequelize', new Sequelize(
   'DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWORD', {
   host: 'DATABASE_HOST',
-  dialect: 'DIALECT_NAME',
+  port: DATABASE_PORT,
+  dialect: 'CLI_SEQUELIZE_DIALECT_NAME',
   logging: false,
   dialectOptions: {
     timezone: 'Etc/GMT0'
   }
-}), InjectType.Variable);        
-        `
+}), InjectType.Variable);
+        `,
+        ask: [
+          'DATABASE_NAME',
+          'DATABASE_USER',
+          'DATABASE_PASSWORD',
+          'DATABASE_HOST',
+          'DATABASE_PORT'
+        ]
       },
       {
         type: ReplaceType.ServerRetriveVar,
@@ -181,13 +203,16 @@ Injector.inject('Sequelize', new Sequelize(
       },
       {
         type: ReplaceType.IndexInjectMiddleware,
-        with: " cookieParser('SECRET_TOKEN_HERE'),"
+        with: " cookieParser('COOKIE-PARSER-SECRET-TOKEN'),",
+        ask: [
+          'COOKIE-PARSER-SECRET-TOKEN'
+        ]
       }
     ]
   }
 };
 
-const moduleQuestions: CheckboxQuestion[] = [
+const moduleQuestions: any[] = [
   {
     type: 'checkbox',
     name: 'modules',
@@ -196,11 +221,11 @@ const moduleQuestions: CheckboxQuestion[] = [
   }
 ];
 
-const sequelizeDatabase: CheckboxQuestion[] = [
+const sequelizeDatabase: any[] = [
   {
-    type: 'checkbox',
-    name: 'dialects',
-    message: 'What other dialects for Sequelize do you want?',
+    type: 'rawlist',
+    name: 'dialect',
+    message: 'What dialect do you want for Sequelize?',
     choices: Object.keys(modulesData['Sequelize ORM'].databases ?? {})
   }
 ];
@@ -276,25 +301,62 @@ export default () => {
         let templatesToInstall: string[] = [];
         let requestDatabse = false;
 
-        (modules as string[]).forEach((moduleName) => {
+        let promises: Promise<void>[] = [];
+
+        const initModule = async (moduleName: string) => {
           if (!requestDatabse) {
             requestDatabse = !!modulesData[moduleName].databases;
           }
 
           if (modulesData[moduleName].replacements) {
+            let replacementPromises: Promise<void>[] = [];
+
+            const initReplacement = async (replacement: ReplacementOb) => {
+              await lock.acquire('ask-replace', async (done) => {
+                let oldData = replacements[replacement.type] ?? [];
+
+                let replaceWith = replacement.with;
+
+                if (replacement.ask) {
+                  const questionsToAsk = replacement.ask!.map((rep) => {
+                    return {
+                      type: 'input',
+                      name: rep,
+                      message: `For ${moduleName}, please give a value for: ${colors.green(`${rep}`)}`
+                    };
+                  });
+
+                  const answers = await prompt(questionsToAsk);
+
+                  if (answers) {
+                    Object.keys(answers).forEach((answ) => {
+                      replaceWith = replaceWith.replace(new RegExp(answ, 'g'), answers[answ]);
+                    });
+                  }
+                }
+
+                oldData = [
+                  ...(oldData ?? []),
+                  replaceWith
+                ];
+
+                replacements = {
+                  ...replacements,
+                  [replacement.type]: oldData
+                };
+
+                done();
+              });
+            };
+
             modulesData[moduleName].replacements!.forEach((replacement) => {
-              let oldData = replacements[replacement.type] ?? [];
-
-              oldData = [
-                ...(oldData ?? []),
-                replacement.with
+              replacementPromises = [
+                ...replacementPromises,
+                initReplacement(replacement)
               ];
-
-              replacements = {
-                ...replacements,
-                [replacement.type]: oldData
-              };
             });
+
+            await Promise.all(replacementPromises);
           }
 
           modulesToInstall = [
@@ -315,16 +377,31 @@ export default () => {
               modulesData[moduleName].template!
             ];
           }
+        };
+
+        (modules as string[]).forEach((moduleName) => {
+          promises = [
+            ...promises,
+            initModule(moduleName)
+          ];
         });
 
+        await Promise.all(promises);
+
         if (requestDatabse) {
-          const { dialects } = await prompt(sequelizeDatabase);
-          (dialects as string[]).forEach((dialectName) => {
-            modulesToInstall = [
-              ...modulesToInstall,
-              modulesData['Sequelize ORM'].databases![dialectName].packageName
-            ];
-          });
+          const { dialect } = await prompt(sequelizeDatabase);
+          replacements = JSON.parse(
+            JSON.stringify(replacements)
+              .replace(
+                new RegExp('CLI_SEQUELIZE_DIALECT_NAME', 'g'),
+                modulesData['Sequelize ORM'].databases![dialect].dialectName
+              )
+          );
+
+          modulesToInstall = [
+            ...modulesToInstall,
+            modulesData['Sequelize ORM'].databases![dialect].packageName
+          ];
         }
 
         const npmInstallModules = [
