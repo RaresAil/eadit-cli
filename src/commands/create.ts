@@ -5,6 +5,7 @@ import { execSync } from 'child_process';
 import nodePath from 'path';
 import fs from 'fs';
 import Config from '../index';
+import colors from 'colors/safe';
 
 const gitUrl = 'https://github.com/RaresAil/express-adr-dependency-injection-typescript-example.git';
 
@@ -41,6 +42,20 @@ interface ModulesData {
 }
 
 const modulesData: ModulesData = {
+  'Morgan (HTTP request logger middleware for node.js)': {
+    packageName: 'morgan',
+    devPackage: '@types/morgan',
+    replacements: [
+      {
+        type: ReplaceType.IndexImport,
+        with: "import morgan from 'morgan';"
+      },
+      {
+        type: ReplaceType.IndexInjectMiddleware,
+        with: " morgan('dev'),"
+      }
+    ]
+  },
   Mongoose: {
     packageName: 'mongoose',
     devPackage: '@types/mongoose',
@@ -155,6 +170,20 @@ Injector.inject('Sequelize', new Sequelize(
   'JSON Web Token (jsonwebtoken)': {
     packageName: 'jsonwebtoken',
     devPackage: '@types/jsonwebtoken'
+  },
+  'Cookie Parser': {
+    packageName: 'cookie-parser',
+    devPackage: '@types/cookie-parser',
+    replacements: [
+      {
+        type: ReplaceType.IndexImport,
+        with: "import cookieParser from 'cookie-parser';"
+      },
+      {
+        type: ReplaceType.IndexInjectMiddleware,
+        with: " cookieParser('SECRET_TOKEN_HERE'),"
+      }
+    ]
   }
 };
 
@@ -196,7 +225,7 @@ export default () => {
       } else if (platform === 'win32') {
         findCommand = 'cd';
       } else {
-        console.log('Unknwon OS');
+        console.log(colors.red('Unknwon OS'), '\n');
         return;
       }
 
@@ -204,24 +233,24 @@ export default () => {
       try {
         dir = execSync(findCommand).toString('utf8').trim().replace(/\r?\n|\r/g, '');
       } catch {
-        console.log('Unknwon OS');
+        console.log(colors.red('Unknwon OS'), '\n');
         return;
       }
 
       if (!fs.existsSync(nodePath.normalize(dir))) {
-        console.log('Unknwon Current Path');
+        console.log(colors.red('Unknwon Current Path'), '\n');
         return;
       }
 
       const gitCheck = execSync('git --version').toString('utf8').trim().replace(/\r?\n|\r/g, '');
       if (!gitCheck) {
-        console.log('Git is not installed!');
+        console.log(colors.red('Git is not installed!'), '\n');
         return;
       }
 
       const [gName, gVName, gVersion] = gitCheck.split(' ');
       if (!gName || !gVName || !gVersion || Number.isNaN(parseInt(gVersion.replace('.', '')))) {
-        console.log('Git is not installed!');
+        console.log(colors.red('Git is not installed!'), '\n');
         return;
       }
 
@@ -340,32 +369,32 @@ export default () => {
           });
         }
 
-        console.log('Cloning template...');
+        console.log(colors.yellow('Cloning template...'));
         execSync(`git clone ${gitUrl} "${fullPath}"`);
         fs.rmdirSync(nodePath.join(fullPath, '.git'), {
           recursive: true
         });
-        console.log('Cloning complete.');
+        console.log(colors.green('Cloning complete.'), '\n');
 
-        console.log('Installing dependencies...');
+        console.log(colors.yellow('Installing dependencies...'));
         execSync(`cd "${fullPath}"`);
         execSync('npm i');
-        console.log('Dependencies installed.');
+        console.log(colors.green('Dependencies installed.'), '\n');
 
         if (modulesToInstall.length > 0) {
-          console.log(`Installing extra dependencies... (${modulesToInstall.length})`);
+          console.log(colors.yellow(`Installing extra dependencies... (${modulesToInstall.length})`));
           execSync(npmInstallModules);
-          console.log('Extra dependencies installed.');
+          console.log(colors.green('Extra dependencies installed.'), '\n');
         }
 
         if (devModulesToInstall.length > 0) {
-          console.log(`Installing extra dev-dependencies... (${devModulesToInstall.length})`);
+          console.log(colors.yellow(`Installing extra dev-dependencies... (${devModulesToInstall.length})`));
           execSync(npmInstallDevModules);
-          console.log('Extra dev-dependencies installed.');
+          console.log(colors.green('Extra dev-dependencies installed.'), '\n');
         }
 
         if (templatesToInstall.length > 0) {
-          console.log(`Installing templates for extra dependencies... (${modulesToInstall.length})`);
+          console.log(colors.yellow(`Installing templates for extra dependencies... (${modulesToInstall.length})`));
           templatesToInstall.forEach((tempalte) => {
             const templatePath = nodePath.join(Config.root, 'templates', tempalte);
             const destination = nodePath.join(fullPath, 'src', 'domain', 'entities');
@@ -376,7 +405,7 @@ export default () => {
               console.error(`Unable to install template "${tempalte.replace('.txt', '')}"`);
             }
           });
-          console.log('Templates for extra dependencies installed.');
+          console.log(colors.green('Templates for extra dependencies installed.'), '\n');
         }
 
         const indexTS = nodePath.join(fullPath, 'src', 'index.ts');
@@ -386,7 +415,7 @@ export default () => {
         let serverContents = fs.readFileSync(serverTS, 'utf8');
 
         if (Object.keys(replacements).length > 0) {
-          console.log(`Injecting templates for extra dependencies... (${Object.keys(replacements).length})`);
+          console.log(colors.yellow(`Injecting templates for extra dependencies... (${Object.keys(replacements).length})`));
         }
 
         Object.keys(replacements).forEach((replacement) => {
@@ -394,6 +423,9 @@ export default () => {
           const replaceRegex = new RegExp(replacement, 'gi');
 
           switch (replacement) {
+            case ReplaceType.IndexInjectMiddleware:
+              indexContents = indexContents.replace(replaceRegex, replaceWith);
+              break;
             case ReplaceType.IndexImport:
               indexContents = indexContents.replace(replaceRegex, replaceWith);
               break;
@@ -422,10 +454,21 @@ export default () => {
         fs.writeFileSync(serverTS, serverContents);
 
         if (Object.keys(replacements).length > 0) {
-          console.log('Templates for extra dependencies injected.');
+          console.log(colors.green('Templates for extra dependencies injected.'), '\n');
         }
 
-        console.log('Done.');
+        console.log(
+          colors.green('Complete!'), '\n',
+          'Use',
+          colors.cyan('npm run dev'),
+          'to test the application', '\n',
+          'Use',
+          colors.cyan('npm run build'),
+          'to compile the application', '\n',
+          'Use',
+          colors.cyan('npm start'),
+          'to run the compiled application', '\n'
+        );
       });
     });
 };

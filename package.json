@@ -49,6 +49,7 @@
     "typescript": "^3.9.7"
   },
   "dependencies": {
+    "colors": "^1.4.0",
     "commander": "^6.0.0",
     "inquirer": "^7.3.3"
   }
