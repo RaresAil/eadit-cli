@@ -4,6 +4,5 @@ interface IndexConfgig {
 }
 
 export default {
-  root: __dirname,
-  version: '1.0.1'
+  root: __dirname
 } as IndexConfgig;
