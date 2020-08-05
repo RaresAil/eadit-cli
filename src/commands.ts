@@ -6,7 +6,7 @@ import path from 'path';
 import colors from 'colors/safe';
 import { execSync } from 'child_process';
 
-const version = '1.0.2';
+const version = '1.0.3';
 
 program
   .version(version)
@@ -25,7 +25,6 @@ rawCommands.forEach((command) => {
 
 try {
   const latestVersion = execSync('npm show eadit-cli version').toString('utf8').trim().replace(/\r?\n|\r/g, '');
-  console.log(latestVersion, version);
   if (latestVersion && version) {
     if (latestVersion !== version) {
       console.log('\n\n', colors.yellow('WARNING'), colors.gray(':'), colors.white('You are not using the latest version!'), `${colors.gray('(')}Last: ${colors.green(latestVersion)}`, `Current: ${colors.red(version)}${colors.gray(')')}`, '\n\n');
