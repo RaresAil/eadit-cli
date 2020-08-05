@@ -1,0 +1,48 @@
+import { Inject, InjectedEntity, Retrive } from 'express-adr-dependency-injection-typescript/lib/Injector';
+import { Entity } from 'express-adr-dependency-injection-typescript/lib/Router';
+import { Sequelize, Model, STRING, INTEGER } from 'sequelize';
+
+class Demo extends Model { }
+
+@Inject
+@Entity('SequelizeModelName')
+export default class SequelizeModelName implements InjectedEntity {
+  @Retrive('Sequelize')
+  private sequelize?: Sequelize;
+
+  private __entity?: typeof Demo;
+  public get Entity (): typeof Demo | undefined {
+    return this.__entity;
+  }
+
+  async onLoad (): Promise<void> {
+    if (!this.sequelize) {
+      return;
+    }
+
+    Demo.init({
+      id: {
+        type: INTEGER,
+        allowNull: false,
+        autoIncrement: true,
+        primaryKey: true
+      },
+
+      email: {
+        type: STRING(255),
+        unique: true,
+        allowNull: false
+      },
+
+      password: {
+        type: STRING(512),
+        allowNull: false
+      }
+    }, {
+      sequelize: this.sequelize!,
+      modelName: 'demo'
+    });
+
+    this.__entity = Demo;
+  }
+}

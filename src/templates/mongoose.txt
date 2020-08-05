@@ -3,8 +3,8 @@ import { Entity } from 'express-adr-dependency-injection-typescript/lib/Router';
 import { Schema, Mongoose } from 'mongoose';
 
 @Inject
-@Entity('ModelName')
-export default class ModelName implements InjectedEntity {
+@Entity('MongooseModelName')
+export default class MongooseModelName implements InjectedEntity {
   // Mongoose must be injected first!
   // e.g. Injector.inject('Mongoose', mongoose, InjectType.Variable);
   @Retrive('Mongoose')

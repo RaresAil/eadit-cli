@@ -8,10 +8,27 @@ import Config from '../index';
 
 const gitUrl = 'https://github.com/RaresAil/express-adr-dependency-injection-typescript-example.git';
 
+enum ReplaceType {
+  IndexImport = '// __EADIT_CLI_PLACEHOLDER_IMPORTS',
+  IndexInjectVar = '// __EADIT_CLI_PLACEHOLDER_INJECT_VARS',
+  IndexInjectMiddleware = '// __EADIT_CLI_PLACEHOLDER_INJECT_MIDDLEWARES',
+  ServerBeforeStart = '// __EADIT_CLI_PLACEHOLDER_BEFORE_SERVER_START',
+  ServerRetriveVar = '// __EADIT_CLI_PLACEHOLDER_SERVER_RETRIVE',
+  ServerImport = '// __EADIT_CLI_PLACEHOLDER_SERVER_IMPORTS'
+}
+
+interface ReplacementsObject {
+  [key: string]: string[];
+}
+
 interface ModuleData {
   packageName: string;
   devPackage?: string;
   template?: string;
+  replacements?: {
+    type: ReplaceType;
+    with: string;
+  }[];
   databases?: {
     [key: string]: {
       packageName: string;
@@ -27,10 +44,56 @@ const modulesData: ModulesData = {
   Mongoose: {
     packageName: 'mongoose',
     devPackage: '@types/mongoose',
-    template: 'mongoose.txt'
+    template: 'mongoose.txt',
+    replacements: [
+      {
+        type: ReplaceType.IndexImport,
+        with: "import mongoose from 'mongoose';"
+      },
+      {
+        type: ReplaceType.IndexInjectVar,
+        with: "Injector.inject('MongooseConfig', { connectionURL: 'URL HERE!' }, InjectType.Variable);"
+      },
+      {
+        type: ReplaceType.IndexInjectVar,
+        with: "Injector.inject('Mongoose', mongoose, InjectType.Variable);"
+      },
+      {
+        type: ReplaceType.ServerRetriveVar,
+        with: `
+  @Retrive('Mongoose')
+  private mongoose?: Mongoose;
+        `
+      },
+      {
+        type: ReplaceType.ServerRetriveVar,
+        with: `
+  @Retrive('MongooseConfig')
+  private mongooseConfig?: any;
+        `
+      },
+      {
+        type: ReplaceType.ServerBeforeStart,
+        with: `
+      if (this.mongooseConfig?.connectionURL && this.mongooseConfig?.connectionURL.trim() !== '') {
+        await this.mongoose?.connect(this.mongooseConfig?.connectionURL, {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          useCreateIndex: true
+        });
+        log('Mongoose Connected');
+      }
+        `
+      },
+      {
+        type: ReplaceType.ServerImport,
+        with: "import { Mongoose } from 'mongoose';"
+      }
+    ]
   },
   'Sequelize ORM': {
     packageName: 'sequelize',
+    template: 'sequelize.txt',
     databases: {
       Postgres: {
         packageName: 'pg pg-hstore'
@@ -47,7 +110,47 @@ const modulesData: ModulesData = {
       'Microsoft SQL Server ': {
         packageName: 'tedious'
       }
-    }
+    },
+    replacements: [
+      {
+        type: ReplaceType.IndexImport,
+        with: "import { Sequelize } from 'sequelize';"
+      },
+      {
+        type: ReplaceType.ServerImport,
+        with: "import { Sequelize } from 'sequelize';"
+      },
+      {
+        type: ReplaceType.IndexInjectVar,
+        with: `
+Injector.inject('Sequelize', new Sequelize(
+  'DATABASE_NAME', 'DATABASE_USER', 'DATABASE_PASSWORD', {
+  host: 'DATABASE_HOST',
+  dialect: 'DIALECT_NAME',
+  logging: false,
+  dialectOptions: {
+    timezone: 'Etc/GMT0'
+  }
+}), InjectType.Variable);        
+        `
+      },
+      {
+        type: ReplaceType.ServerRetriveVar,
+        with: `
+  @Retrive('Sequelize')
+  private sequelize?: Sequelize;
+        `
+      },
+      {
+        type: ReplaceType.ServerBeforeStart,
+        with: `
+      if (this.sequelize) {
+        await this.sequelize.authenticate();
+        await this.sequelize.sync();
+      }
+        `
+      }
+    ]
   },
   'JSON Web Token (jsonwebtoken)': {
     packageName: 'jsonwebtoken',
@@ -139,12 +242,30 @@ export default () => {
         const { modules } = await prompt(moduleQuestions);
 
         let modulesToInstall: string[] = [];
+        let replacements: ReplacementsObject = {};
         let devModulesToInstall: string[] = [];
         let templatesToInstall: string[] = [];
         let requestDatabse = false;
+
         (modules as string[]).forEach((moduleName) => {
           if (!requestDatabse) {
             requestDatabse = !!modulesData[moduleName].databases;
+          }
+
+          if (modulesData[moduleName].replacements) {
+            modulesData[moduleName].replacements!.forEach((replacement) => {
+              let oldData = replacements[replacement.type] ?? [];
+
+              oldData = [
+                ...(oldData ?? []),
+                replacement.with
+              ];
+
+              replacements = {
+                ...replacements,
+                [replacement.type]: oldData
+              };
+            });
           }
 
           modulesToInstall = [
@@ -256,6 +377,52 @@ export default () => {
             }
           });
           console.log('Templates for extra dependencies installed.');
+        }
+
+        const indexTS = nodePath.join(fullPath, 'src', 'index.ts');
+        const serverTS = nodePath.join(fullPath, 'src', 'app', 'Server.ts');
+
+        let indexContents = fs.readFileSync(indexTS, 'utf8');
+        let serverContents = fs.readFileSync(serverTS, 'utf8');
+
+        if (Object.keys(replacements).length > 0) {
+          console.log(`Injecting templates for extra dependencies... (${Object.keys(replacements).length})`);
+        }
+
+        Object.keys(replacements).forEach((replacement) => {
+          const replaceWith = replacements[replacement].join('\n');
+          const replaceRegex = new RegExp(replacement, 'gi');
+
+          switch (replacement) {
+            case ReplaceType.IndexImport:
+              indexContents = indexContents.replace(replaceRegex, replaceWith);
+              break;
+            case ReplaceType.IndexInjectVar:
+              indexContents = indexContents.replace(replaceRegex, replaceWith);
+              break;
+            case ReplaceType.ServerRetriveVar:
+              serverContents = serverContents.replace(replaceRegex, replaceWith);
+              break;
+            case ReplaceType.ServerBeforeStart:
+              serverContents = serverContents.replace(replaceRegex, replaceWith);
+              break;
+            case ReplaceType.ServerImport:
+              serverContents = serverContents.replace(replaceRegex, replaceWith);
+              break;
+          }
+        });
+
+        Object.keys(ReplaceType).forEach((type, index) => {
+          const replaceRegex = new RegExp(Object.values(ReplaceType)[index], 'gi');
+          indexContents = indexContents.replace(replaceRegex, '');
+          serverContents = serverContents.replace(replaceRegex, '');
+        });
+
+        fs.writeFileSync(indexTS, indexContents);
+        fs.writeFileSync(serverTS, serverContents);
+
+        if (Object.keys(replacements).length > 0) {
+          console.log('Templates for extra dependencies injected.');
         }
 
         console.log('Done.');
