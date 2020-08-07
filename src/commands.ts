@@ -6,7 +6,7 @@ import path from 'path';
 import colors from 'colors/safe';
 import { execSync } from 'child_process';
 
-const version = '1.0.5';
+const version = '1.0.7';
 
 program
   .version(version)
