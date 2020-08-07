@@ -454,19 +454,18 @@ export default () => {
         console.log(colors.green('Cloning complete.'), '\n');
 
         console.log(colors.yellow('Installing dependencies...'));
-        execSync(`cd "${fullPath}"`);
-        execSync('npm i');
+        execSync(`cd "${fullPath}" && npm i`);
         console.log(colors.green('Dependencies installed.'), '\n');
 
         if (modulesToInstall.length > 0) {
           console.log(colors.yellow(`Installing extra dependencies... (${modulesToInstall.length})`));
-          execSync(npmInstallModules);
+          execSync(`cd "${fullPath}" && ${npmInstallModules}`);
           console.log(colors.green('Extra dependencies installed.'), '\n');
         }
 
         if (devModulesToInstall.length > 0) {
           console.log(colors.yellow(`Installing extra dev-dependencies... (${devModulesToInstall.length})`));
-          execSync(npmInstallDevModules);
+          execSync(`cd "${fullPath}" && ${npmInstallDevModules}`);
           console.log(colors.green('Extra dev-dependencies installed.'), '\n');
         }
 
