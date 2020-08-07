@@ -1,0 +1,13 @@
+import { Inject } from 'express-adr-dependency-injection-typescript/lib/Injector';
+import { Responder } from 'express-adr-dependency-injection-typescript/lib/Router';
+import { Response } from 'express';
+
+@Inject
+@Responder('__RESPONDER_NAME__')
+export default class __RESPONDER_NAME__Responder {
+  public success (res: Response) {
+    return res.status(200).json({
+      success: true
+    });
+  }
+}

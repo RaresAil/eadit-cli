@@ -1,0 +1,13 @@
+import { Inject } from 'express-adr-dependency-injection-typescript/lib/Injector';
+import { Domain } from 'express-adr-dependency-injection-typescript/lib/Router';
+
+@Inject
+@Domain('__DOMAIN_NAME__')
+export default class __DOMAIN_NAME__Domain {
+  public async name (someParameter: string) {
+    return {
+      success: true,
+      someParameter
+    };
+  }
+}

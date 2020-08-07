@@ -1,0 +1,13 @@
+import { Inject, InjectedEntity, Retrive } from 'express-adr-dependency-injection-typescript/lib/Injector';
+import { Entity } from 'express-adr-dependency-injection-typescript/lib/Router';
+
+@Inject
+@Entity('__ENTITY_NAME__')
+export default class __ENTITY_NAME__Entity implements InjectedEntity {
+  @Retrive('ORM')
+  private orm?: any;
+
+  async onLoad (): Promise<void> {
+
+  }
+}

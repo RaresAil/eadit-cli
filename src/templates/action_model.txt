@@ -1,0 +1,27 @@
+import {
+  Action,
+  Get,
+  Delete,
+  Request,
+  Response
+} from 'express-adr-dependency-injection-typescript/lib/Router';
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
+import { Retrive } from 'express-adr-dependency-injection-typescript/lib/Injector';
+
+@Action('/__ACTION_ROUTE__')
+export default class __ACTION_NAME__Action {
+  @Retrive('Responder.Name')
+  private responder?: any;
+
+  @Get('/', [])
+  public findAll (@Request req: ExpressRequest, @Response res: ExpressResponse): any {
+    return res.send({
+      success: true
+    });
+  }
+
+  @Delete('/', [])
+  public async deleteY (@Request req: ExpressRequest, @Response res: ExpressResponse): Promise<any> {
+    return this.responder!.success(res);
+  }
+}

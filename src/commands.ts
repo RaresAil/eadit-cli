@@ -5,17 +5,19 @@ import fs from 'fs';
 import path from 'path';
 import colors from 'colors/safe';
 import { execSync } from 'child_process';
+import Config from './index';
 
-const version = '1.0.7';
+import createConfigFile from './functions/createConfigFile';
 
 program
-  .version(version)
-  .description("CLI for 'express-adr-dependency-injection-typescript'");
+  .version(Config.version)
+  .description("CLI for 'express-adr-dependency-injection-typescript'")
+  .option('--init', 'Creates a config file');
 
 const rawCommands = fs.readdirSync(path.join(__dirname, 'commands'));
 rawCommands.forEach((command) => {
   try {
-    if (!command.toString().endsWith('.js') || command.toString().endsWith('.ts')) {
+    if (!command.toString().endsWith('.js') && !command.toString().endsWith('.ts')) {
       return;
     }
 
@@ -24,12 +26,21 @@ rawCommands.forEach((command) => {
 });
 
 try {
-  const latestVersion = execSync('npm show eadit-cli version').toString('utf8').trim().replace(/\r?\n|\r/g, '');
-  if (latestVersion && version) {
-    if (latestVersion !== version) {
-      console.log('\n\n', colors.yellow('WARNING'), colors.gray(':'), colors.white('You are not using the latest version!'), `${colors.gray('(')}Last: ${colors.green(latestVersion)}`, `Current: ${colors.red(version)}${colors.gray(')')}`, '\n\n');
+  const latestVersion = execSync(`npm show ${Config.name} version`).toString('utf8').trim().replace(/\r?\n|\r/g, '');
+  if (latestVersion && Config && Config.version) {
+    if (latestVersion !== Config.version) {
+      console.log('\n\n', colors.yellow('WARNING'), colors.gray(':'), colors.white('You are not using the latest version!'), `${colors.gray('(')}Last: ${colors.green(latestVersion)}`, `Current: ${colors.red(Config.version)}${colors.gray(')')}`, '\n\n');
     }
   }
 } catch { }
 
-program.parse(process.argv);
+(() => {
+  program.parseOptions(process.argv);
+
+  if (program.init) {
+    createConfigFile();
+    return;
+  }
+
+  program.parse(process.argv);
+})();
