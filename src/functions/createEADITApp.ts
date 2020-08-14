@@ -44,15 +44,6 @@ export interface ModulesData {
   [key: string]: ModuleData;
 }
 
-// const sequelizeDatabase: any[] = [
-//   {
-//     type: 'list',
-//     name: 'dialect',
-//     message: 'What dialect do you want for Sequelize?',
-//     choices: Object.keys(modulesData['Sequelize ORM'].databases ?? {})
-//   }
-// ];
-
 export default (path: string, template: string) => {
   if (!path || path.toString().trim() === '') {
     console.log(colors.red('Unknwon Path'), '\n');
@@ -314,8 +305,16 @@ export default (path: string, template: string) => {
     const indexTS = nodePath.join(fullPath, 'src', 'index.ts');
     const serverTS = nodePath.join(fullPath, 'src', 'app', 'Server.ts');
 
-    let indexContents = fs.readFileSync(indexTS, 'utf8');
-    let serverContents = fs.readFileSync(serverTS, 'utf8');
+    let indexContents = '';
+    let serverContents = '';
+
+    if (fs.existsSync(indexTS)) {
+      indexContents = fs.readFileSync(indexTS, 'utf8');
+    }
+
+    if (fs.existsSync(serverTS)) {
+      serverContents = fs.readFileSync(serverTS, 'utf8');
+    }
 
     if (Object.keys(replacements).length > 0) {
       console.log(colors.yellow(`Injecting templates for extra dependencies... (${Object.keys(replacements).length})`));
@@ -353,8 +352,13 @@ export default (path: string, template: string) => {
       serverContents = serverContents.replace(replaceRegex, '');
     });
 
-    fs.writeFileSync(indexTS, indexContents);
-    fs.writeFileSync(serverTS, serverContents);
+    if (fs.existsSync(indexTS)) {
+      fs.writeFileSync(indexTS, indexContents);
+    }
+
+    if (fs.existsSync(serverTS)) {
+      fs.writeFileSync(serverTS, serverContents);
+    }
 
     if (Object.keys(replacements).length > 0) {
       console.log(colors.green('Templates for extra dependencies injected.'), '\n');
@@ -380,7 +384,7 @@ export default (path: string, template: string) => {
       'Use',
       colors.cyan('npm start'),
       'to run the compiled application', '\n\n',
-      `You can create ${colors.magenta('Actions')}/${colors.magenta('Domains')}/${colors.magenta('Responders')}/${colors.magenta('Entities')}/${colors.magenta('Middlewares')}.`,
+      Config.endMessage[template],
       '\n', `By using ${colors.cyan(`npx ${Config.name} create`)}`, '\n',
       `In the same folder with ${colors.cyan(`${Config.configName}`)}`
     );

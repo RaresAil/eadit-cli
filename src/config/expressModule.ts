@@ -1,5 +1,6 @@
 import { FileCreateType } from '../index';
 import { ReplaceType, ModulesData } from '../functions/createEADITApp';
+import colors from 'colors/safe';
 
 interface ExpressModuleConfig {
   fileTypes: FileCreateType;
@@ -8,6 +9,7 @@ interface ExpressModuleConfig {
   };
   github: string;
   modules: ModulesData;
+  endMessage: string;
 }
 
 const modulesData: ModulesData = {
@@ -260,5 +262,6 @@ export default {
       ]
     }
   },
-  modules: modulesData
+  modules: modulesData,
+  endMessage: `You can create ${colors.magenta('Actions')}/${colors.magenta('Domains')}/${colors.magenta('Responders')}/${colors.magenta('Entities')}/${colors.magenta('Middlewares')}.`
 } as ExpressModuleConfig;

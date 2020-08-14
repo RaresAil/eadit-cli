@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import Utils from './functions/Utils';
 import ExpressModuleConfig from './config/expressModule';
+import DiscordModuleConfig from './config/discordModule';
 
 import { ModulesData } from './functions/createEADITApp';
 
@@ -30,6 +31,9 @@ interface CLIConfig {
   };
   modules: {
     [key: string]: ModulesData;
+  };
+  endMessage: {
+    [key: string]: string;
   };
 }
 
@@ -63,22 +67,32 @@ export default {
   userDir: dir,
 
   templates: [
-    'Express'
+    'Express',
+    'Discord.js'
   ],
 
   modules: {
-    Express: ExpressModuleConfig.modules
+    Express: ExpressModuleConfig.modules,
+    'Discord.js': DiscordModuleConfig.modules
   },
 
   paths: {
-    Express: ExpressModuleConfig.paths
+    Express: ExpressModuleConfig.paths,
+    'Discord.js': DiscordModuleConfig.paths
   },
 
   fileCreate: {
-    Express: ExpressModuleConfig.fileTypes
+    Express: ExpressModuleConfig.fileTypes,
+    'Discord.js': DiscordModuleConfig.fileTypes
   },
 
   githubLinks: {
-    Express: ExpressModuleConfig.github
+    Express: ExpressModuleConfig.github,
+    'Discord.js': DiscordModuleConfig.github
+  },
+
+  endMessage: {
+    Express: ExpressModuleConfig.endMessage,
+    'Discord.js': DiscordModuleConfig.endMessage
   }
 } as CLIConfig;
