@@ -12,12 +12,11 @@ interface DiscordModuleConfig {
   endMessage: string;
 }
 
-const modulesData: ModulesData = {
-
-};
+const modulesData: ModulesData = {};
 
 export default {
-  github: 'https://github.com/RaresAil/discordjs-dependency-injection-typescript-example.git',
+  github:
+    'https://github.com/RaresAil/discordjs-dependency-injection-typescript-example.git',
   paths: {
     Command: 'src/commands'
   },

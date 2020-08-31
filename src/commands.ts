@@ -17,22 +17,36 @@ program
 const rawCommands = fs.readdirSync(path.join(__dirname, 'commands'));
 rawCommands.forEach((command) => {
   try {
-    if (!command.toString().endsWith('.js') && !command.toString().endsWith('.ts')) {
+    if (
+      !command.toString().endsWith('.js') &&
+      !command.toString().endsWith('.ts')
+    ) {
       return;
     }
 
-    (require(path.join(__dirname, 'commands', command)).default)();
-  } catch { }
+    require(path.join(__dirname, 'commands', command)).default();
+  } catch {}
 });
 
 try {
-  const latestVersion = execSync(`npm show ${Config.name} version`).toString('utf8').trim().replace(/\r?\n|\r/g, '');
+  const latestVersion = execSync(`npm show ${Config.name} version`)
+    .toString('utf8')
+    .trim()
+    .replace(/\r?\n|\r/g, '');
   if (latestVersion && Config && Config.version) {
     if (latestVersion !== Config.version) {
-      console.log('\n\n', colors.yellow('WARNING'), colors.gray(':'), colors.white('You are not using the latest version!'), `${colors.gray('(')}Last: ${colors.green(latestVersion)}`, `Current: ${colors.red(Config.version)}${colors.gray(')')}`, '\n\n');
+      console.log(
+        '\n\n',
+        colors.yellow('WARNING'),
+        colors.gray(':'),
+        colors.white('You are not using the latest version!'),
+        `${colors.gray('(')}Last: ${colors.green(latestVersion)}`,
+        `Current: ${colors.red(Config.version)}${colors.gray(')')}`,
+        '\n\n'
+      );
     }
   }
-} catch { }
+} catch {}
 
 (() => {
   program.parseOptions(process.argv);

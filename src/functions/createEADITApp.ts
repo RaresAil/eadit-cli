@@ -76,14 +76,22 @@ export default (path: string, template: string) => {
     return;
   }
 
-  const gitCheck = execSync('git --version').toString('utf8').trim().replace(/\r?\n|\r/g, '');
+  const gitCheck = execSync('git --version')
+    .toString('utf8')
+    .trim()
+    .replace(/\r?\n|\r/g, '');
   if (!gitCheck) {
     console.log(colors.red('Git is not installed!'), '\n');
     return;
   }
 
   const [gName, gVName, gVersion] = gitCheck.split(' ');
-  if (!gName || !gVName || !gVersion || Number.isNaN(parseInt(gVersion.replace('.', '')))) {
+  if (
+    !gName ||
+    !gVName ||
+    !gVersion ||
+    Number.isNaN(parseInt(gVersion.replace('.', '')))
+  ) {
     console.log(colors.red('Git is not installed!'), '\n');
     return;
   }
@@ -97,7 +105,7 @@ export default (path: string, template: string) => {
       message: `Is the path correct? ('${fullPath}')`,
       default: true
     }
-  ]).then(async ({ correct }: { correct: boolean; }) => {
+  ]).then(async ({ correct }: { correct: boolean }) => {
     if (!correct) {
       return;
     }
@@ -131,7 +139,9 @@ export default (path: string, template: string) => {
                 return {
                   type: 'input',
                   name: rep,
-                  message: `For ${moduleName}, please give a value for: ${colors.green(`${rep}`)}`
+                  message: `For ${moduleName}, please give a value for: ${colors.green(
+                    `${rep}`
+                  )}`
                 };
               });
 
@@ -139,15 +149,15 @@ export default (path: string, template: string) => {
 
               if (answers) {
                 Object.keys(answers).forEach((answ) => {
-                  replaceWith = replaceWith.replace(new RegExp(answ, 'g'), answers[answ]);
+                  replaceWith = replaceWith.replace(
+                    new RegExp(answ, 'g'),
+                    answers[answ]
+                  );
                 });
               }
             }
 
-            oldData = [
-              ...(oldData ?? []),
-              replaceWith
-            ];
+            oldData = [...(oldData ?? []), replaceWith];
 
             replacements = {
               ...replacements,
@@ -189,10 +199,7 @@ export default (path: string, template: string) => {
     };
 
     (modules as string[]).forEach((moduleName) => {
-      promises = [
-        ...promises,
-        initModule(moduleName)
-      ];
+      promises = [...promises, initModule(moduleName)];
     });
 
     await Promise.all(promises);
@@ -209,11 +216,10 @@ export default (path: string, template: string) => {
 
       const { dialect } = await prompt(sequelizeDatabase);
       replacements = JSON.parse(
-        JSON.stringify(replacements)
-          .replace(
-            new RegExp('CLI_SEQUELIZE_DIALECT_NAME', 'g'),
-            modulesData['Sequelize ORM'].databases![dialect].dialectName
-          )
+        JSON.stringify(replacements).replace(
+          new RegExp('CLI_SEQUELIZE_DIALECT_NAME', 'g'),
+          modulesData['Sequelize ORM'].databases![dialect].dialectName
+        )
       );
 
       modulesToInstall = [
@@ -222,15 +228,9 @@ export default (path: string, template: string) => {
       ];
     }
 
-    const npmInstallModules = [
-      'npm i --save',
-      ...modulesToInstall
-    ].join(' ');
+    const npmInstallModules = ['npm i --save', ...modulesToInstall].join(' ');
 
-    const npmInstallDevModules = [
-      'npm i -D',
-      ...devModulesToInstall
-    ].join(' ');
+    const npmInstallDevModules = ['npm i -D', ...devModulesToInstall].join(' ');
 
     fs.mkdirSync(fullPath, {
       recursive: true
@@ -242,7 +242,8 @@ export default (path: string, template: string) => {
         {
           type: 'confirm',
           name: 'clearDir',
-          message: 'The current directory is not empty, do you want to clear it?',
+          message:
+            'The current directory is not empty, do you want to clear it?',
           default: false
         }
       ]);
@@ -276,30 +277,58 @@ export default (path: string, template: string) => {
     console.log(colors.green('Dependencies installed.'), '\n');
 
     if (modulesToInstall.length > 0) {
-      console.log(colors.yellow(`Installing extra dependencies... (${modulesToInstall.length})`));
+      console.log(
+        colors.yellow(
+          `Installing extra dependencies... (${modulesToInstall.length})`
+        )
+      );
       execSync(`cd "${fullPath}" && ${npmInstallModules}`);
       console.log(colors.green('Extra dependencies installed.'), '\n');
     }
 
     if (devModulesToInstall.length > 0) {
-      console.log(colors.yellow(`Installing extra dev-dependencies... (${devModulesToInstall.length})`));
+      console.log(
+        colors.yellow(
+          `Installing extra dev-dependencies... (${devModulesToInstall.length})`
+        )
+      );
       execSync(`cd "${fullPath}" && ${npmInstallDevModules}`);
       console.log(colors.green('Extra dev-dependencies installed.'), '\n');
     }
 
     if (templatesToInstall.length > 0) {
-      console.log(colors.yellow(`Installing templates for extra dependencies... (${modulesToInstall.length})`));
+      console.log(
+        colors.yellow(
+          `Installing templates for extra dependencies... (${modulesToInstall.length})`
+        )
+      );
       templatesToInstall.forEach((tempalte) => {
         const templatePath = nodePath.join(Config.root, 'templates', tempalte);
-        const destination = nodePath.join(fullPath, 'src', 'domain', 'entities');
+        const destination = nodePath.join(
+          fullPath,
+          'src',
+          'domain',
+          'entities'
+        );
 
         if (fs.existsSync(templatePath) && fs.existsSync(destination)) {
-          fs.copyFileSync(templatePath, nodePath.join(destination, `${tempalte.replace('.txt', '')}Model.ts`));
+          fs.copyFileSync(
+            templatePath,
+            nodePath.join(
+              destination,
+              `${tempalte.replace('.txt', '')}Model.ts`
+            )
+          );
         } else {
-          console.error(`Unable to install template "${tempalte.replace('.txt', '')}"`);
+          console.error(
+            `Unable to install template "${tempalte.replace('.txt', '')}"`
+          );
         }
       });
-      console.log(colors.green('Templates for extra dependencies installed.'), '\n');
+      console.log(
+        colors.green('Templates for extra dependencies installed.'),
+        '\n'
+      );
     }
 
     const indexTS = nodePath.join(fullPath, 'src', 'index.ts');
@@ -317,7 +346,13 @@ export default (path: string, template: string) => {
     }
 
     if (Object.keys(replacements).length > 0) {
-      console.log(colors.yellow(`Injecting templates for extra dependencies... (${Object.keys(replacements).length})`));
+      console.log(
+        colors.yellow(
+          `Injecting templates for extra dependencies... (${
+            Object.keys(replacements).length
+          })`
+        )
+      );
     }
 
     Object.keys(replacements).forEach((replacement) => {
@@ -361,31 +396,46 @@ export default (path: string, template: string) => {
     }
 
     if (Object.keys(replacements).length > 0) {
-      console.log(colors.green('Templates for extra dependencies injected.'), '\n');
+      console.log(
+        colors.green('Templates for extra dependencies injected.'),
+        '\n'
+      );
     }
 
     try {
-      fs.writeFileSync(nodePath.join(fullPath, Config.configName), JSON.stringify(
-        defaultConfig([template]), null, 2
-      ));
+      fs.writeFileSync(
+        nodePath.join(fullPath, Config.configName),
+        JSON.stringify(defaultConfig([template]), null, 2)
+      );
     } catch {
-      console.error(colors.red('Unable to generate config file.'), '\n',
-        'Use', colors.cyan(`npx ${Config.name} --init`), '\n');
+      console.error(
+        colors.red('Unable to generate config file.'),
+        '\n',
+        'Use',
+        colors.cyan(`npx ${Config.name} --init`),
+        '\n'
+      );
     }
 
     console.log(
-      colors.green('Complete!'), '\n',
+      colors.green('Complete!'),
+      '\n',
       'Use',
       colors.cyan('npm run dev'),
-      'to test the application', '\n',
+      'to test the application',
+      '\n',
       'Use',
       colors.cyan('npm run build'),
-      'to compile the application', '\n',
+      'to compile the application',
+      '\n',
       'Use',
       colors.cyan('npm start'),
-      'to run the compiled application', '\n\n',
+      'to run the compiled application',
+      '\n\n',
       Config.endMessage[template],
-      '\n', `By using ${colors.cyan(`npx ${Config.name} create`)}`, '\n',
+      '\n',
+      `By using ${colors.cyan(`npx ${Config.name} create`)}`,
+      '\n',
       `In the same folder with ${colors.cyan(`${Config.configName}`)}`
     );
   });

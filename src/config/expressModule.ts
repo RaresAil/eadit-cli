@@ -38,10 +38,9 @@ const modulesData: ModulesData = {
       },
       {
         type: ReplaceType.IndexInjectVar,
-        with: "Injector.inject('MongooseConfig', { connectionURL: 'MONGO_CONN_URL' }, InjectType.Variable);",
-        ask: [
-          'MONGO_CONN_URL'
-        ]
+        with:
+          "Injector.inject('MongooseConfig', { connectionURL: 'MONGO_CONN_URL' }, InjectType.Variable);",
+        ask: ['MONGO_CONN_URL']
       },
       {
         type: ReplaceType.IndexInjectVar,
@@ -169,16 +168,15 @@ Injector.inject('Sequelize', new Sequelize(
       {
         type: ReplaceType.IndexInjectMiddleware,
         with: " cookieParser('COOKIE-PARSER-SECRET-TOKEN'),",
-        ask: [
-          'COOKIE-PARSER-SECRET-TOKEN'
-        ]
+        ask: ['COOKIE-PARSER-SECRET-TOKEN']
       }
     ]
   }
 };
 
 export default {
-  github: 'https://github.com/RaresAil/express-adr-dependency-injection-typescript-example.git',
+  github:
+    'https://github.com/RaresAil/express-adr-dependency-injection-typescript-example.git',
   paths: {
     Action: 'src/actions',
     Domain: 'src/domain',
@@ -215,7 +213,8 @@ export default {
         },
         {
           name: '__FILE_NAME__',
-          question: 'What name do you want for the file? (Don\'t need to include ".ts")'
+          question:
+            'What name do you want for the file? (Don\'t need to include ".ts")'
         }
       ]
     },
@@ -229,7 +228,8 @@ export default {
         },
         {
           name: '__FILE_NAME__',
-          question: 'What name do you want for the file? (Don\'t need to include ".ts")'
+          question:
+            'What name do you want for the file? (Don\'t need to include ".ts")'
         }
       ]
     },
@@ -243,7 +243,8 @@ export default {
         },
         {
           name: '__FILE_NAME__',
-          question: 'What name do you want for the file? (Don\'t need to include ".ts")'
+          question:
+            'What name do you want for the file? (Don\'t need to include ".ts")'
         }
       ]
     },
@@ -257,11 +258,16 @@ export default {
         },
         {
           name: '__FILE_NAME__',
-          question: 'What name do you want for the file? (Don\'t need to include ".ts")'
+          question:
+            'What name do you want for the file? (Don\'t need to include ".ts")'
         }
       ]
     }
   },
   modules: modulesData,
-  endMessage: `You can create ${colors.magenta('Actions')}/${colors.magenta('Domains')}/${colors.magenta('Responders')}/${colors.magenta('Entities')}/${colors.magenta('Middlewares')}.`
+  endMessage: `You can create ${colors.magenta('Actions')}/${colors.magenta(
+    'Domains'
+  )}/${colors.magenta('Responders')}/${colors.magenta(
+    'Entities'
+  )}/${colors.magenta('Middlewares')}.`
 } as ExpressModuleConfig;

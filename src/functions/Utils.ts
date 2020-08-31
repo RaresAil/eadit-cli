@@ -4,7 +4,7 @@ import nodePath from 'path';
 import fs from 'fs';
 
 export default abstract class Utils {
-  public static getUserDic (): string | undefined {
+  public static getUserDic(): string | undefined {
     let findCommand;
     const platform = os.platform();
     const linuxPlatforms = [
@@ -26,7 +26,10 @@ export default abstract class Utils {
 
     let dir: string | undefined;
     try {
-      dir = execSync(findCommand).toString('utf8').trim().replace(/\r?\n|\r/g, '');
+      dir = execSync(findCommand)
+        .toString('utf8')
+        .trim()
+        .replace(/\r?\n|\r/g, '');
     } catch {
       return undefined;
     }
@@ -36,5 +39,5 @@ export default abstract class Utils {
     }
 
     return dir;
-  };
+  }
 }

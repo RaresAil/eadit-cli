@@ -12,7 +12,9 @@ export default async () => {
     return;
   }
 
-  const configFile = fs.readFileSync(nodePath.join(Config.userDir, Config.configName)).toString('utf8');
+  const configFile = fs
+    .readFileSync(nodePath.join(Config.userDir, Config.configName))
+    .toString('utf8');
   try {
     const configData = JSON.parse(configFile) as EADITConfig;
     if (!configData || !configData.templates) {
@@ -47,14 +49,24 @@ export default async () => {
       }
     ]);
 
-    if (!type || !Object.keys(Config.fileCreate[selectedTemplate]).includes(type)) {
+    if (
+      !type ||
+      !Object.keys(Config.fileCreate[selectedTemplate]).includes(type)
+    ) {
       console.error(colors.bold(colors.red('Invalid type.')));
       return;
     }
 
-    const pathToSave = nodePath.join(Config.userDir, configData.paths[selectedTemplate][type]);
+    const pathToSave = nodePath.join(
+      Config.userDir,
+      configData.paths[selectedTemplate][type]
+    );
     if (!fs.existsSync(pathToSave)) {
-      console.error(`${colors.bold(colors.red('The path'))} %o`, configData.paths[selectedTemplate][type], colors.bold(colors.red('dosen\'t exists!')));
+      console.error(
+        `${colors.bold(colors.red('The path'))} %o`,
+        configData.paths[selectedTemplate][type],
+        colors.bold(colors.red("dosen't exists!"))
+      );
       return;
     }
 
@@ -64,16 +76,20 @@ export default async () => {
       return;
     }
 
-    let templateFile = fs.readFileSync(nodePath.join(Config.root, 'templates', file)).toString('utf8');
+    let templateFile = fs
+      .readFileSync(nodePath.join(Config.root, 'templates', file))
+      .toString('utf8');
 
     if (ask.length > 0) {
-      const answers = await prompt(ask.map((askItem) => {
-        return {
-          type: 'input',
-          name: askItem.name,
-          message: askItem.question
-        };
-      })) as {
+      const answers = (await prompt(
+        ask.map((askItem) => {
+          return {
+            type: 'input',
+            name: askItem.name,
+            message: askItem.question
+          };
+        })
+      )) as {
         [key: string]: string;
       };
 
@@ -81,9 +97,9 @@ export default async () => {
 
       Object.keys(answers).forEach((search) => {
         if (search === '__FILE_NAME__') {
-          const givenName = answers[search].replace(
-            new RegExp('.ts', 'gi'), ''
-          ).replace(/[^a-zA-Z0-9_]/gi, '');
+          const givenName = answers[search]
+            .replace(new RegExp('.ts', 'gi'), '')
+            .replace(/[^a-zA-Z0-9_]/gi, '');
 
           if (givenName && givenName.trim() !== '') {
             nameToSave = `${givenName}${suffix}.ts`;
@@ -91,12 +107,18 @@ export default async () => {
           return;
         }
 
-        const place = answers[search].startsWith('/') ? answers[search].substr(1) : answers[search];
+        const place = answers[search].startsWith('/')
+          ? answers[search].substr(1)
+          : answers[search];
         templateFile = templateFile.replace(new RegExp(search, 'g'), place);
       });
 
       if (fs.existsSync(nodePath.join(pathToSave, nameToSave))) {
-        console.error(`${colors.bold(colors.red('A file with the name'))} %o`, nameToSave, colors.bold(colors.red('already exists!')));
+        console.error(
+          `${colors.bold(colors.red('A file with the name'))} %o`,
+          nameToSave,
+          colors.bold(colors.red('already exists!'))
+        );
         return;
       }
 

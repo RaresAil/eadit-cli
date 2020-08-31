@@ -49,7 +49,9 @@ export interface FileCreateType {
 }
 
 try {
-  const packageData = fs.readFileSync(path.join(root, '..', 'package.json')).toString('utf8');
+  const packageData = fs
+    .readFileSync(path.join(root, '..', 'package.json'))
+    .toString('utf8');
   if (packageData && JSON.parse(packageData)) {
     const data = JSON.parse(packageData);
     version = data.version;
@@ -57,7 +59,7 @@ try {
   }
 
   dir = Utils.getUserDic();
-} catch { }
+} catch {}
 
 export default {
   root,
@@ -66,10 +68,7 @@ export default {
   configName: 'eaditconfig.json',
   userDir: dir,
 
-  templates: [
-    'Express',
-    'Discord.js'
-  ],
+  templates: ['Express', 'Discord.js'],
 
   modules: {
     Express: ExpressModuleConfig.modules,

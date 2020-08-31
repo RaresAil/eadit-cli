@@ -17,19 +17,31 @@ const moduleQuestions: any[] = [
 export default async (): Promise<void> => {
   try {
     if (!Config || !Config.userDir) {
-      console.log(colors.red('You can only generate a config file in the same directory with packages.json'));
+      console.log(
+        colors.red(
+          'You can only generate a config file in the same directory with packages.json'
+        )
+      );
       return;
     }
 
-    const configFile: boolean = fs.existsSync(path.join(Config.userDir, Config.configName));
+    const configFile: boolean = fs.existsSync(
+      path.join(Config.userDir, Config.configName)
+    );
     if (configFile) {
       console.log(colors.red('A configuration file already exists.'));
       return;
     }
 
-    const packagesFile: boolean = fs.existsSync(path.join(Config.userDir, 'package.json'));
+    const packagesFile: boolean = fs.existsSync(
+      path.join(Config.userDir, 'package.json')
+    );
     if (!packagesFile) {
-      console.log(colors.red('You can only generate a config file in the same directory with package.json'));
+      console.log(
+        colors.red(
+          'You can only generate a config file in the same directory with package.json'
+        )
+      );
       return;
     }
 
@@ -45,9 +57,10 @@ export default async (): Promise<void> => {
       return;
     }
 
-    fs.writeFileSync(path.join(Config.userDir, Config.configName), JSON.stringify(
-      defaultConfig([module]), null, 2
-    ));
+    fs.writeFileSync(
+      path.join(Config.userDir, Config.configName),
+      JSON.stringify(defaultConfig([module]), null, 2)
+    );
   } catch {
     console.log(colors.red('Unknwon Error'));
   }
