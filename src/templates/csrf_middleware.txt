@@ -1,0 +1,89 @@
+import { Request, Response, NextFunction, CookieOptions } from 'express';
+import {
+  Inject,
+  MiddlewareClass,
+  Retrive
+} from 'express-adr-dependency-injection-typescript/lib/Injector';
+
+import Tokens from 'csrf';
+
+const CSRFCookieName: string = 'x-csrf-session';
+
+@Inject
+export default class CSRFMiddleware implements MiddlewareClass {
+  private _secret: string = '';
+  private csrf?: Tokens = undefined;
+
+  constructor() {
+    this.csrf = new Tokens({
+      saltLength: 64,
+      secretLength: 144
+    });
+    this._secret = this.csrf.secretSync();
+  }
+
+  public Verify(token: string): boolean | undefined {
+    return this.csrf?.verify(this._secret, token);
+  }
+
+  public async middleware(
+    req: CSRFRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    req.csrfToken = (): string => {
+      return this.csrf!.create(this._secret);
+    };
+
+    req.csrfSetCookie = (res, token?): Response => {
+      const tokenToUse = token || req.csrfToken();
+      return res.cookie(CSRFCookieName, tokenToUse, {
+        signed: true,
+        httpOnly: true,
+        secure: false
+      });
+    };
+
+    return next();
+  }
+}
+
+@Inject
+export class CSRFProtectionMiddleware implements MiddlewareClass {
+  @Retrive('CSRFMiddleware')
+  private CSRFMiddleware?: CSRFMiddleware;
+
+  private rejectResponse(res: Response): Response<any> {
+    return res.status(401).json({
+      success: false
+    });
+  }
+
+  public async middleware(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    const csrfCookie = req.signedCookies[CSRFCookieName] as string | boolean;
+    if (
+      !this.CSRFMiddleware ||
+      !csrfCookie ||
+      typeof csrfCookie !== 'string' ||
+      !csrfCookie.trim()
+    ) {
+      return this.rejectResponse(res);
+    }
+
+    const checkToken = this.CSRFMiddleware.Verify(csrfCookie);
+    if (!checkToken) {
+      return this.rejectResponse(res);
+    }
+
+    return next();
+  }
+}
+
+export interface CSRFRequest extends Request {
+  csrfToken: () => string;
+  csrfSetCookie: (res: Response, token?: string) => Response;
+}

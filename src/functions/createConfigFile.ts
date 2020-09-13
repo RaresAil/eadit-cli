@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import fs from 'fs';
 import { prompt } from 'inquirer';
 import path from 'path';

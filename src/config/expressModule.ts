@@ -171,6 +171,30 @@ Injector.inject('Sequelize', new Sequelize(
         ask: ['COOKIE-PARSER-SECRET-TOKEN']
       }
     ]
+  },
+  'CSRF Middleware (Cookie Parser is required!)': {
+    packageName: 'csrf',
+    devPackage: '@types/csrf',
+    template: 'csrf_middleware.txt',
+    templateName: 'CSRFMiddleware',
+    templateLocation: ['src', 'middlewares'],
+    replacements: [
+      {
+        type: ReplaceType.IndexImport,
+        with:
+          "import CSRFMiddleware, { CSRFProtectionMiddleware } from './middlewares/CSRFMiddleware';"
+      },
+      {
+        type: ReplaceType.IndexInjectVar,
+        with:
+          "Injector.inject('CSRFMiddleware', CSRFMiddleware, InjectType.Middleware);"
+      },
+      {
+        type: ReplaceType.IndexInjectVar,
+        with:
+          "Injector.inject('CSRFProtectionMiddleware', CSRFProtectionMiddleware, InjectType.Middleware);"
+      }
+    ]
   }
 };
 

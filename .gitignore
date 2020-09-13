@@ -105,6 +105,7 @@ dist
 
 # Build directory
 bin/**
+demo/**
 
 # MacOS
 .DS_Store

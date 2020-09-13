@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { prompt } from 'inquirer';
 import fs from 'fs';
 import Config from '../index';

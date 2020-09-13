@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { prompt } from 'inquirer';
 import { execSync } from 'child_process';
 import nodePath from 'path';
@@ -31,6 +32,8 @@ export interface ModuleData {
   packageName: string;
   devPackage?: string;
   template?: string;
+  templateName?: string;
+  templateLocation?: string[];
   replacements?: ReplacementOb[];
   databases?: {
     [key: string]: {
@@ -115,7 +118,11 @@ export default (path: string, template: string) => {
     let modulesToInstall: string[] = [];
     let replacements: ReplacementsObject = {};
     let devModulesToInstall: string[] = [];
-    let templatesToInstall: string[] = [];
+    let templatesToInstall: {
+      name: string;
+      saveName?: string;
+      location?: string[];
+    }[] = [];
     let requestDatabse = false;
 
     let promises: Promise<void>[] = [];
@@ -193,7 +200,11 @@ export default (path: string, template: string) => {
       if (modulesData[moduleName].template) {
         templatesToInstall = [
           ...templatesToInstall,
-          modulesData[moduleName].template!
+          {
+            name: modulesData[moduleName].template!,
+            location: modulesData[moduleName].templateLocation,
+            saveName: modulesData[moduleName].templateName
+          }
         ];
       }
     };
@@ -302,13 +313,16 @@ export default (path: string, template: string) => {
           `Installing templates for extra dependencies... (${modulesToInstall.length})`
         )
       );
+
       templatesToInstall.forEach((tempalte) => {
-        const templatePath = nodePath.join(Config.root, 'templates', tempalte);
+        const templatePath = nodePath.join(
+          Config.root,
+          'templates',
+          tempalte.name
+        );
         const destination = nodePath.join(
           fullPath,
-          'src',
-          'domain',
-          'entities'
+          ...(tempalte.location || ['src', 'domain', 'entities'])
         );
 
         if (fs.existsSync(templatePath) && fs.existsSync(destination)) {
@@ -316,12 +330,14 @@ export default (path: string, template: string) => {
             templatePath,
             nodePath.join(
               destination,
-              `${tempalte.replace('.txt', '')}Model.ts`
+              tempalte.saveName
+                ? `${tempalte.saveName}.ts`
+                : `${tempalte.name.replace('.txt', '')}Model.ts`
             )
           );
         } else {
           console.error(
-            `Unable to install template "${tempalte.replace('.txt', '')}"`
+            `Unable to install template "${tempalte.name.replace('.txt', '')}"`
           );
         }
       });
