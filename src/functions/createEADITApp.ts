@@ -106,7 +106,7 @@ export default (path: string, template: string) => {
     fullPath = nodePath.join(path);
   }
 
-  const yarnCheck = execSync('yarn info')
+  const yarnCheck = execSync('yarn -v')
     .toString('utf8')
     .trim()
     .replace(/\r?\n|\r/g, '');
@@ -124,7 +124,7 @@ export default (path: string, template: string) => {
       return;
     }
 
-    if (yarnCheck.startsWith('yarn info v')) {
+    if (yarnCheck.match(/^\d.+\d+.\d+$/g)) {
       const { uYarn }: { uYarn: boolean } = await prompt([
         {
           type: 'confirm',

@@ -1,6 +1,6 @@
 {
   "name": "eadit-cli",
-  "version": "5.0.0",
+  "version": "5.0.1",
   "description": "CLI for 'express-adr-dependency-injection-typescript'",
   "main": "bin/index.js",
   "preferGlobal": true,
