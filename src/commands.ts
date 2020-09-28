@@ -1,12 +1,13 @@
 #! /usr/bin/env node
 
-import program from 'commander';
 import fs from 'fs';
 import path from 'path';
+import program from 'commander';
 import colors from 'colors/safe';
 import { execSync } from 'child_process';
-import Config from './index';
 
+import Config from './index';
+import Utils from './functions/Utils';
 import createConfigFile from './functions/createConfigFile';
 
 program
@@ -33,9 +34,10 @@ try {
     .toString('utf8')
     .trim()
     .replace(/\r?\n|\r/g, '');
+
   if (latestVersion && Config && Config.version) {
     if (latestVersion !== Config.version) {
-      console.log(
+      Utils.log(
         '\n\n',
         colors.yellow('WARNING'),
         colors.gray(':'),

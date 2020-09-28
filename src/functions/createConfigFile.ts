@@ -1,9 +1,10 @@
-/* eslint-disable no-console */
 import fs from 'fs';
-import { prompt } from 'inquirer';
 import path from 'path';
-import Config from '../index';
 import colors from 'colors/safe';
+import { prompt } from 'inquirer';
+
+import Utils from './Utils';
+import Config from '../index';
 import defaultConfig from '../config/default';
 
 const moduleQuestions: any[] = [
@@ -18,7 +19,7 @@ const moduleQuestions: any[] = [
 export default async (): Promise<void> => {
   try {
     if (!Config || !Config.userDir) {
-      console.log(
+      Utils.log(
         colors.red(
           'You can only generate a config file in the same directory with packages.json'
         )
@@ -30,7 +31,7 @@ export default async (): Promise<void> => {
       path.join(Config.userDir, Config.configName)
     );
     if (configFile) {
-      console.log(colors.red('A configuration file already exists.'));
+      Utils.log(colors.red('A configuration file already exists.'));
       return;
     }
 
@@ -38,7 +39,7 @@ export default async (): Promise<void> => {
       path.join(Config.userDir, 'package.json')
     );
     if (!packagesFile) {
-      console.log(
+      Utils.log(
         colors.red(
           'You can only generate a config file in the same directory with package.json'
         )
@@ -54,7 +55,7 @@ export default async (): Promise<void> => {
     }
 
     if (!module) {
-      console.log(colors.red('Unknwon Template'));
+      Utils.log(colors.red('Unknwon Template'));
       return;
     }
 
@@ -63,6 +64,6 @@ export default async (): Promise<void> => {
       JSON.stringify(defaultConfig([module]), null, 2)
     );
   } catch {
-    console.log(colors.red('Unknwon Error'));
+    Utils.log(colors.red('Unknwon Error'));
   }
 };

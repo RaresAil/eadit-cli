@@ -1,15 +1,15 @@
-/* eslint-disable no-console */
-import { prompt } from 'inquirer';
 import fs from 'fs';
-import Config from '../index';
-import colors from 'colors/safe';
 import nodePath from 'path';
+import colors from 'colors/safe';
+import { prompt } from 'inquirer';
 
+import Utils from './Utils';
+import Config from '../index';
 import { EADITConfig } from '../config/default';
 
 export default async () => {
   if (!Config.userDir || !fs.existsSync(nodePath.normalize(Config.userDir))) {
-    console.log(colors.bold(colors.red('Unknwon Current Path')), '\n');
+    Utils.log(colors.bold(colors.red('Unknwon Current Path')), '\n');
     return;
   }
 
@@ -19,7 +19,7 @@ export default async () => {
   try {
     const configData = JSON.parse(configFile) as EADITConfig;
     if (!configData || !configData.templates) {
-      console.error(colors.bold(colors.red('Invalid configuration file.')));
+      Utils.logError(colors.bold(colors.red('Invalid configuration file.')));
       return;
     }
 
@@ -36,7 +36,7 @@ export default async () => {
     }
 
     if (!selectedTemplate || !configData.templates.includes(selectedTemplate)) {
-      console.error(colors.bold(colors.red('Invalid tempalte.')));
+      Utils.logError(colors.bold(colors.red('Invalid tempalte.')));
       return;
     }
 
@@ -54,7 +54,7 @@ export default async () => {
       !type ||
       !Object.keys(Config.fileCreate[selectedTemplate]).includes(type)
     ) {
-      console.error(colors.bold(colors.red('Invalid type.')));
+      Utils.logError(colors.bold(colors.red('Invalid type.')));
       return;
     }
 
@@ -63,7 +63,7 @@ export default async () => {
       configData.paths[selectedTemplate][type]
     );
     if (!fs.existsSync(pathToSave)) {
-      console.error(
+      Utils.logError(
         `${colors.bold(colors.red('The path'))} %o`,
         configData.paths[selectedTemplate][type],
         colors.bold(colors.red("dosen't exists!"))
@@ -73,7 +73,7 @@ export default async () => {
 
     const { ask, file, suffix } = Config.fileCreate[selectedTemplate][type];
     if (!fs.existsSync(nodePath.join(Config.root, 'templates', file))) {
-      console.error(colors.bold(colors.red('No template was found :(')));
+      Utils.logError(colors.bold(colors.red('No template was found :(')));
       return;
     }
 
@@ -115,7 +115,7 @@ export default async () => {
       });
 
       if (fs.existsSync(nodePath.join(pathToSave, nameToSave))) {
-        console.error(
+        Utils.logError(
           `${colors.bold(colors.red('A file with the name'))} %o`,
           nameToSave,
           colors.bold(colors.red('already exists!'))
@@ -126,10 +126,10 @@ export default async () => {
       try {
         fs.writeFileSync(nodePath.join(pathToSave, nameToSave), templateFile);
       } catch {
-        console.error(colors.bold(colors.red('Unable to save the file!')));
+        Utils.logError(colors.bold(colors.red('Unable to save the file!')));
       }
     }
   } catch {
-    console.error(colors.bold(colors.red('Invalid configuration file.')));
+    Utils.logError(colors.bold(colors.red('Invalid configuration file.')));
   }
 };

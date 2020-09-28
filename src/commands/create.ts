@@ -1,17 +1,18 @@
-import program from 'commander';
-import { prompt } from 'inquirer';
 import fs from 'fs';
-import Config from '../index';
-import colors from 'colors/safe';
 import nodePath from 'path';
+import program from 'commander';
+import colors from 'colors/safe';
+import { prompt } from 'inquirer';
 
+import Config from '../index';
+import Utils from '../functions/Utils';
 import createApp from '../functions/createEADITApp';
 import createFileByType from '../functions/createFileByType';
 
 export default () => {
   program.command('create [path]').action((path: string) => {
     if (!Config.userDir || !fs.existsSync(nodePath.normalize(Config.userDir))) {
-      console.log(colors.red('Unknwon Current Path'), '\n');
+      Utils.log(colors.red('Unknwon Current Path'), '\n');
       return;
     }
 
@@ -20,7 +21,7 @@ export default () => {
     );
     if (!hasConfigFile) {
       if (!path || path.trim() === '') {
-        console.log(colors.red('A path is required.'), '\n');
+        Utils.log(colors.red('A path is required.'), '\n');
         return;
       }
 

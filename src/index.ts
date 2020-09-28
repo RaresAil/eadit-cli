@@ -1,10 +1,10 @@
 import fs from 'fs';
 import path from 'path';
+
 import Utils from './functions/Utils';
+import { ModulesData } from './functions/createEADITApp';
 import ExpressModuleConfig from './config/expressModule';
 import DiscordModuleConfig from './config/discordModule';
-
-import { ModulesData } from './functions/createEADITApp';
 
 const root = __dirname;
 let version: string = '0.0.0';

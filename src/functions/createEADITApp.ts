@@ -1,12 +1,14 @@
-/* eslint-disable no-console */
-import { prompt } from 'inquirer';
-import { execSync } from 'child_process';
-import nodePath from 'path';
 import fs from 'fs';
-import Config from '../index';
+import nodePath from 'path';
 import colors from 'colors/safe';
+import { prompt } from 'inquirer';
 import AsyncLock from 'async-lock';
+import { execSync } from 'child_process';
+
+import Utils from './Utils';
+import Config from '../index';
 import defaultConfig from '../config/default';
+
 const lock = new AsyncLock();
 
 export enum ReplaceType {
@@ -49,7 +51,7 @@ export interface ModulesData {
 
 export default (path: string, template: string) => {
   if (!path || path.toString().trim() === '') {
-    console.log(colors.red('Unknwon Path'), '\n');
+    Utils.log(colors.red('Unknwon Path'), '\n');
     return;
   }
 
@@ -60,7 +62,7 @@ export default (path: string, template: string) => {
     !Config.githubLinks[template].endsWith('.git') ||
     !Config.modules[template]
   ) {
-    console.log(colors.red('Unknwon Template'), '\n');
+    Utils.log(colors.red('Unknwon Template'), '\n');
     return;
   }
 
@@ -75,7 +77,7 @@ export default (path: string, template: string) => {
   ];
 
   if (!Config.userDir || !fs.existsSync(nodePath.normalize(Config.userDir))) {
-    console.log(colors.red('Unknwon Current Path'), '\n');
+    Utils.log(colors.red('Unknwon Current Path'), '\n');
     return;
   }
 
@@ -84,7 +86,7 @@ export default (path: string, template: string) => {
     .trim()
     .replace(/\r?\n|\r/g, '');
   if (!gitCheck) {
-    console.log(colors.red('Git is not installed!'), '\n');
+    Utils.log(colors.red('Git is not installed!'), '\n');
     return;
   }
 
@@ -95,11 +97,20 @@ export default (path: string, template: string) => {
     !gVersion ||
     Number.isNaN(parseInt(gVersion.replace('.', '')))
   ) {
-    console.log(colors.red('Git is not installed!'), '\n');
+    Utils.log(colors.red('Git is not installed!'), '\n');
     return;
   }
 
-  const fullPath = nodePath.join(Config.userDir, path);
+  let fullPath = nodePath.join(Config.userDir, path);
+  if (nodePath.isAbsolute(path)) {
+    fullPath = nodePath.join(path);
+  }
+
+  const yarnCheck = execSync('yarn info')
+    .toString('utf8')
+    .trim()
+    .replace(/\r?\n|\r/g, '');
+  let useYarn = false;
 
   prompt([
     {
@@ -111,6 +122,19 @@ export default (path: string, template: string) => {
   ]).then(async ({ correct }: { correct: boolean }) => {
     if (!correct) {
       return;
+    }
+
+    if (yarnCheck.startsWith('yarn info v')) {
+      const { uYarn }: { uYarn: boolean } = await prompt([
+        {
+          type: 'confirm',
+          name: 'uYarn',
+          message: 'Yarn was detected on your system, do you want to use Yarn?',
+          default: true
+        }
+      ]);
+
+      useYarn = uYarn;
     }
 
     const { modules } = await prompt(moduleQuestions);
@@ -239,9 +263,17 @@ export default (path: string, template: string) => {
       ];
     }
 
-    const npmInstallModules = ['npm i --save', ...modulesToInstall].join(' ');
+    const npmInstallModules = Utils.getInstallCommand(
+      modulesToInstall,
+      false,
+      useYarn
+    );
 
-    const npmInstallDevModules = ['npm i -D', ...devModulesToInstall].join(' ');
+    const npmInstallDevModules = Utils.getInstallCommand(
+      devModulesToInstall,
+      true,
+      useYarn
+    );
 
     fs.mkdirSync(fullPath, {
       recursive: true
@@ -276,39 +308,39 @@ export default (path: string, template: string) => {
       });
     }
 
-    console.log(colors.yellow('Cloning template...'));
+    Utils.log(colors.yellow('Cloning template...'));
     execSync(`git clone ${Config.githubLinks[template]} "${fullPath}"`);
     fs.rmdirSync(nodePath.join(fullPath, '.git'), {
       recursive: true
     });
-    console.log(colors.green('Cloning complete.'), '\n');
+    Utils.log(colors.green('Cloning complete.'), '\n');
 
-    console.log(colors.yellow('Installing dependencies...'));
-    execSync(`cd "${fullPath}" && npm i`);
-    console.log(colors.green('Dependencies installed.'), '\n');
+    Utils.log(colors.yellow('Installing dependencies...'));
+    execSync(`cd "${fullPath}" && ${Utils.getInstallAll(useYarn)}`);
+    Utils.log(colors.green('Dependencies installed.'), '\n');
 
     if (modulesToInstall.length > 0) {
-      console.log(
+      Utils.log(
         colors.yellow(
           `Installing extra dependencies... (${modulesToInstall.length})`
         )
       );
       execSync(`cd "${fullPath}" && ${npmInstallModules}`);
-      console.log(colors.green('Extra dependencies installed.'), '\n');
+      Utils.log(colors.green('Extra dependencies installed.'), '\n');
     }
 
     if (devModulesToInstall.length > 0) {
-      console.log(
+      Utils.log(
         colors.yellow(
           `Installing extra dev-dependencies... (${devModulesToInstall.length})`
         )
       );
       execSync(`cd "${fullPath}" && ${npmInstallDevModules}`);
-      console.log(colors.green('Extra dev-dependencies installed.'), '\n');
+      Utils.log(colors.green('Extra dev-dependencies installed.'), '\n');
     }
 
     if (templatesToInstall.length > 0) {
-      console.log(
+      Utils.log(
         colors.yellow(
           `Installing templates for extra dependencies... (${modulesToInstall.length})`
         )
@@ -336,12 +368,12 @@ export default (path: string, template: string) => {
             )
           );
         } else {
-          console.error(
+          Utils.logError(
             `Unable to install template "${tempalte.name.replace('.txt', '')}"`
           );
         }
       });
-      console.log(
+      Utils.log(
         colors.green('Templates for extra dependencies installed.'),
         '\n'
       );
@@ -362,7 +394,7 @@ export default (path: string, template: string) => {
     }
 
     if (Object.keys(replacements).length > 0) {
-      console.log(
+      Utils.log(
         colors.yellow(
           `Injecting templates for extra dependencies... (${
             Object.keys(replacements).length
@@ -412,7 +444,7 @@ export default (path: string, template: string) => {
     }
 
     if (Object.keys(replacements).length > 0) {
-      console.log(
+      Utils.log(
         colors.green('Templates for extra dependencies injected.'),
         '\n'
       );
@@ -424,7 +456,7 @@ export default (path: string, template: string) => {
         JSON.stringify(defaultConfig([template]), null, 2)
       );
     } catch {
-      console.error(
+      Utils.logError(
         colors.red('Unable to generate config file.'),
         '\n',
         'Use',
@@ -433,19 +465,19 @@ export default (path: string, template: string) => {
       );
     }
 
-    console.log(
+    Utils.log(
       colors.green('Complete!'),
       '\n',
       'Use',
-      colors.cyan('npm run dev'),
+      colors.cyan(`${Utils.getInstallerName(useYarn)} run dev`),
       'to test the application',
       '\n',
       'Use',
-      colors.cyan('npm run build'),
+      colors.cyan(`${Utils.getInstallerName(useYarn)} run build`),
       'to compile the application',
       '\n',
       'Use',
-      colors.cyan('npm start'),
+      colors.cyan(`${Utils.getInstallerName(useYarn)} run start`),
       'to run the compiled application',
       '\n\n',
       Config.endMessage[template],

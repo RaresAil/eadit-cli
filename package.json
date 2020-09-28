@@ -1,6 +1,6 @@
 {
   "name": "eadit-cli",
-  "version": "4.0.1",
+  "version": "5.0.0",
   "description": "CLI for 'express-adr-dependency-injection-typescript'",
   "main": "bin/index.js",
   "preferGlobal": true,
@@ -10,7 +10,8 @@
     "bin/*"
   ],
   "scripts": {
-    "build": "rm -rf ./bin/ && tsc -p . && cp -r ./src/templates ./bin/templates"
+    "build": "eslint src/**/*.ts && rm -rf ./bin/ && tsc -p . && cp -r ./src/templates ./bin/templates",
+    "lint": "eslint src/**/*.ts"
   },
   "repository": {
     "type": "git",

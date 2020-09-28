@@ -1,7 +1,7 @@
 import os from 'os';
-import { execSync } from 'child_process';
-import nodePath from 'path';
 import fs from 'fs';
+import nodePath from 'path';
+import { execSync } from 'child_process';
 
 export default abstract class Utils {
   public static getUserDic(): string | undefined {
@@ -39,5 +39,37 @@ export default abstract class Utils {
     }
 
     return dir;
+  }
+
+  public static getInstallerName(yarn: boolean): string {
+    return yarn ? 'yarn' : 'npm';
+  }
+
+  public static getInstallCommand(
+    packages: string[],
+    dev: boolean,
+    yarn: boolean
+  ): string {
+    let installCommand = `npm i ${dev ? '-D' : '--save'}`;
+
+    if (yarn) {
+      installCommand = `yarn add ${dev ? ' -D' : ''}`.trim();
+    }
+
+    return [installCommand, ...packages].join(' ');
+  }
+
+  public static getInstallAll(yarn: boolean): string {
+    return yarn ? 'yarn install' : 'npm i';
+  }
+
+  public static log(...args: any[]) {
+    // eslint-disable-next-line no-console
+    console.log(...args);
+  }
+
+  public static logError(...args: any[]) {
+    // eslint-disable-next-line no-console
+    console.error(...args);
   }
 }

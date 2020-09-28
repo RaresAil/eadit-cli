@@ -1,6 +1,7 @@
+import colors from 'colors/safe';
+
 import { FileCreateType } from '../index';
 import { ModulesData } from '../functions/createEADITApp';
-import colors from 'colors/safe';
 
 interface DiscordModuleConfig {
   fileTypes: FileCreateType;
