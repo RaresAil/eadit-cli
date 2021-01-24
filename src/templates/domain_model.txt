@@ -1,5 +1,4 @@
-import { Inject } from 'express-adr-dependency-injection-typescript/lib/Injector';
-import { Domain } from 'express-adr-dependency-injection-typescript/lib/Router';
+import { Inject, Domain } from 'adr-express-ts';
 
 @Inject
 @Domain('__DOMAIN_NAME__')

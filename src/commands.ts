@@ -12,7 +12,7 @@ import createConfigFile from './functions/createConfigFile';
 
 program
   .version(Config.version)
-  .description("CLI for 'express-adr-dependency-injection-typescript'")
+  .description("CLI for 'adr-express-ts'")
   .option('--init', 'Creates a config file');
 
 const rawCommands = fs.readdirSync(path.join(__dirname, 'commands'));

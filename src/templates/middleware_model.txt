@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from 'express';
-import { Inject, MiddlewareClass } from 'express-adr-dependency-injection-typescript/lib/Injector';
+import { Middleware } from 'adr-express-ts/lib/@types';
+import { Inject } from 'adr-express-ts';
 
 @Inject
-export default class __MIDDLE_NAME__Middleware implements MiddlewareClass {
+export default class __MIDDLE_NAME__Middleware implements Middleware {
   public async middleware (req: Request, res: Response, next: NextFunction): Promise<any> {
     return next();
   }

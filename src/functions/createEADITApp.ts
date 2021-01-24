@@ -313,6 +313,15 @@ export default (path: string, template: string) => {
     fs.rmdirSync(nodePath.join(fullPath, '.git'), {
       recursive: true
     });
+
+    if (fs.existsSync(nodePath.join(fullPath, 'yarn.lock'))) {
+      fs.unlinkSync(nodePath.join(fullPath, 'yarn.lock'));
+    }
+
+    if (fs.existsSync(nodePath.join(fullPath, 'package-lock.json'))) {
+      fs.unlinkSync(nodePath.join(fullPath, 'package-lock.json'));
+    }
+
     Utils.log(colors.green('Cloning complete.'), '\n');
 
     Utils.log(colors.yellow('Installing dependencies...'));

@@ -1,16 +1,13 @@
-import { Request, Response, NextFunction, CookieOptions } from 'express';
-import {
-  Inject,
-  MiddlewareClass,
-  Retrive
-} from 'express-adr-dependency-injection-typescript/lib/Injector';
+import { Request, Response, NextFunction } from 'express';
+import { Middleware } from 'adr-express-ts/lib/@types';
+import { Inject, Retrive } from 'adr-express-ts';
 
 import Tokens from 'csrf';
 
 const CSRFCookieName: string = 'x-csrf-session';
 
 @Inject
-export default class CSRFMiddleware implements MiddlewareClass {
+export default class CSRFMiddleware implements Middleware<CSRFRequest> {
   private _secret: string = '';
   private csrf?: Tokens = undefined;
 
@@ -35,7 +32,7 @@ export default class CSRFMiddleware implements MiddlewareClass {
       return this.csrf!.create(this._secret);
     };
 
-    req.csrfSetCookie = (res, token?): Response => {
+    req.csrfSetCookie = (res: Response, token?: any): Response => {
       const tokenToUse = token || req.csrfToken();
       return res.cookie(CSRFCookieName, tokenToUse, {
         signed: true,
@@ -49,7 +46,7 @@ export default class CSRFMiddleware implements MiddlewareClass {
 }
 
 @Inject
-export class CSRFProtectionMiddleware implements MiddlewareClass {
+export class CSRFProtectionMiddleware implements Middleware {
   @Retrive('CSRFMiddleware')
   private CSRFMiddleware?: CSRFMiddleware;
 

@@ -1,0 +1,6 @@
+.github/
+.src/
+demo/
+.eslintignore
+.eslintrc.json
+.gitignore

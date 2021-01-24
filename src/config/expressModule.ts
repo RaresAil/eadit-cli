@@ -200,8 +200,7 @@ Injector.inject('Sequelize', new Sequelize(
 };
 
 export default {
-  github:
-    'https://github.com/RaresAil/express-adr-dependency-injection-typescript-example.git',
+  github: 'https://github.com/RaresAil/adr-express-ts-template.git',
   paths: {
     Action: 'src/actions',
     Domain: 'src/domain',

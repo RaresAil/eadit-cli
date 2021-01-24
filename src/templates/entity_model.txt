@@ -1,5 +1,4 @@
-import { Inject, InjectedEntity, Retrive } from 'express-adr-dependency-injection-typescript/lib/Injector';
-import { Entity } from 'express-adr-dependency-injection-typescript/lib/Router';
+import { Inject, InjectedEntity, Retrive, Entity } from 'adr-express-ts';
 
 @Inject
 @Entity('__ENTITY_NAME__')

@@ -1,12 +1,12 @@
+import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
 import {
   Action,
   Get,
   Delete,
+  Retrive,
   Request,
   Response
-} from 'express-adr-dependency-injection-typescript/lib/Router';
-import { Request as ExpressRequest, Response as ExpressResponse } from 'express';
-import { Retrive } from 'express-adr-dependency-injection-typescript/lib/Injector';
+} from 'adr-express-ts';
 
 @Action('/__ACTION_ROUTE__')
 export default class __ACTION_NAME__Action {

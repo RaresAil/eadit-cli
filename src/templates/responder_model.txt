@@ -1,5 +1,4 @@
-import { Inject } from 'express-adr-dependency-injection-typescript/lib/Injector';
-import { Responder } from 'express-adr-dependency-injection-typescript/lib/Router';
+import { Inject, Responder } from 'adr-express-ts';
 import { Response } from 'express';
 
 @Inject

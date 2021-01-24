@@ -1,3 +1,3 @@
 # eadit-cli
 
-This is a CLI for [express-adr-dependency-injection-typescript](https://github.com/RaresAil/express-adr-dependency-injection-typescript)
+This is a CLI for [adr-express-ts](https://github.com/RaresAil/adr-express-ts)
