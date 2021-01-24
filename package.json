@@ -41,22 +41,22 @@
   "devDependencies": {
     "@types/async-lock": "^1.1.2",
     "@types/inquirer": "^7.3.1",
-    "@types/node": "^14.10.1",
-    "@typescript-eslint/eslint-plugin": "^3.10.1",
-    "@typescript-eslint/parser": "^3.10.1",
-    "eslint": "^7.9.0",
-    "eslint-config-standard": "^14.1.1",
+    "@types/node": "^14.14.22",
+    "@typescript-eslint/eslint-plugin": "^4.14.0",
+    "@typescript-eslint/parser": "^4.14.0",
+    "eslint": "^7.18.0",
+    "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.22.0",
     "eslint-plugin-node": "^11.1.0",
     "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-standard": "^4.0.1",
-    "ts-node": "^8.10.2",
-    "typescript": "^3.9.7"
+    "eslint-plugin-standard": "^5.0.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.3"
   },
   "dependencies": {
-    "async-lock": "^1.2.4",
+    "async-lock": "^1.2.8",
     "colors": "^1.4.0",
-    "commander": "^6.1.0",
+    "commander": "^7.0.0",
     "inquirer": "^7.3.3"
   }
 }

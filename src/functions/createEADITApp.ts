@@ -252,7 +252,7 @@ export default (path: string, template: string) => {
       const { dialect } = await prompt(sequelizeDatabase);
       replacements = JSON.parse(
         JSON.stringify(replacements).replace(
-          new RegExp('CLI_SEQUELIZE_DIALECT_NAME', 'g'),
+          /CLI_SEQUELIZE_DIALECT_NAME/gm,
           modulesData['Sequelize ORM'].databases![dialect].dialectName
         )
       );

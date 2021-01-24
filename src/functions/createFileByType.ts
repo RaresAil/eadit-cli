@@ -99,7 +99,7 @@ export default async () => {
       Object.keys(answers).forEach((search) => {
         if (search === '__FILE_NAME__') {
           const givenName = answers[search]
-            .replace(new RegExp('.ts', 'gi'), '')
+            .replace(/\.ts/gi, '')
             .replace(/[^a-zA-Z0-9_]/gi, '');
 
           if (givenName && givenName.trim() !== '') {

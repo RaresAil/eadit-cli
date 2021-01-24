@@ -52,8 +52,9 @@ try {
 
 (() => {
   program.parseOptions(process.argv);
+  const options = program.opts();
 
-  if (program.init) {
+  if (options.init) {
     createConfigFile();
     return;
   }
