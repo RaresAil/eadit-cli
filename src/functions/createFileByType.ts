@@ -1,11 +1,12 @@
-import fs from 'fs';
-import nodePath from 'path';
-import colors from 'colors/safe';
 import { prompt } from 'inquirer';
+import colors from 'colors/safe';
+import nodePath from 'path';
+import RE2 from 're2';
+import fs from 'fs';
 
-import Utils from './Utils';
-import Config from '../index';
 import { EADITConfig } from '../config/default';
+import Config from '../index';
+import Utils from './Utils';
 
 export default async () => {
   if (!Config.userDir || !fs.existsSync(nodePath.normalize(Config.userDir))) {
@@ -40,7 +41,7 @@ export default async () => {
       return;
     }
 
-    const types = Object.keys(Config.fileCreate[selectedTemplate]);
+    const types = Object.keys(Config.fileCreate[selectedTemplate.toString()]);
     const { type } = await prompt([
       {
         type: 'list',
@@ -52,7 +53,9 @@ export default async () => {
 
     if (
       !type ||
-      !Object.keys(Config.fileCreate[selectedTemplate]).includes(type)
+      !Object.keys(Config.fileCreate[selectedTemplate.toString()]).includes(
+        type
+      )
     ) {
       Utils.logError(colors.bold(colors.red('Invalid type.')));
       return;
@@ -60,18 +63,20 @@ export default async () => {
 
     const pathToSave = nodePath.join(
       Config.userDir,
-      configData.paths[selectedTemplate][type]
+      configData.paths[selectedTemplate.toString()][type.toString()]
     );
     if (!fs.existsSync(pathToSave)) {
       Utils.logError(
         `${colors.bold(colors.red('The path'))} %o`,
-        configData.paths[selectedTemplate][type],
+        configData.paths[selectedTemplate.toString()][type.toString()],
         colors.bold(colors.red("dosen't exists!"))
       );
       return;
     }
 
-    const { ask, file, suffix } = Config.fileCreate[selectedTemplate][type];
+    const { ask, file, suffix } = Config.fileCreate[
+      selectedTemplate.toString()
+    ][type.toString()];
     if (!fs.existsSync(nodePath.join(Config.root, 'templates', file))) {
       Utils.logError(colors.bold(colors.red('No template was found :(')));
       return;
@@ -98,7 +103,7 @@ export default async () => {
 
       Object.keys(answers).forEach((search) => {
         if (search === '__FILE_NAME__') {
-          const givenName = answers[search]
+          const givenName = answers[search.toString()]
             .replace(/\.ts/gi, '')
             .replace(/[^a-zA-Z0-9_]/gi, '');
 
@@ -108,10 +113,10 @@ export default async () => {
           return;
         }
 
-        const place = answers[search].startsWith('/')
-          ? answers[search].substr(1)
-          : answers[search];
-        templateFile = templateFile.replace(new RegExp(search, 'g'), place);
+        const place = answers[search.toString()].startsWith('/')
+          ? answers[search.toString()].substr(1)
+          : answers[search.toString()];
+        templateFile = templateFile.replace(new RE2(search, 'g'), place);
       });
 
       if (fs.existsSync(nodePath.join(pathToSave, nameToSave))) {

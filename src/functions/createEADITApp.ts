@@ -1,23 +1,24 @@
-import fs from 'fs';
-import nodePath from 'path';
-import colors from 'colors/safe';
-import { prompt } from 'inquirer';
-import AsyncLock from 'async-lock';
 import { execSync } from 'child_process';
+import AsyncLock from 'async-lock';
+import { prompt } from 'inquirer';
+import colors from 'colors/safe';
+import nodePath from 'path';
+import RE2 from 're2';
+import fs from 'fs';
 
-import Utils from './Utils';
-import Config from '../index';
 import defaultConfig from '../config/default';
+import Config from '../index';
+import Utils from './Utils';
 
 const lock = new AsyncLock();
 
 export enum ReplaceType {
-  IndexImport = '// __EADIT_CLI_PLACEHOLDER_IMPORTS',
-  IndexInjectVar = '// __EADIT_CLI_PLACEHOLDER_INJECT_VARS',
   IndexInjectMiddleware = '// __EADIT_CLI_PLACEHOLDER_INJECT_MIDDLEWARES',
   ServerBeforeStart = '// __EADIT_CLI_PLACEHOLDER_BEFORE_SERVER_START',
   ServerRetriveVar = '// __EADIT_CLI_PLACEHOLDER_SERVER_RETRIVE',
-  ServerImport = '// __EADIT_CLI_PLACEHOLDER_SERVER_IMPORTS'
+  ServerImport = '// __EADIT_CLI_PLACEHOLDER_SERVER_IMPORTS',
+  IndexInjectVar = '// __EADIT_CLI_PLACEHOLDER_INJECT_VARS',
+  IndexImport = '// __EADIT_CLI_PLACEHOLDER_IMPORTS'
 }
 
 export interface ReplacementsObject {
@@ -58,21 +59,21 @@ export default (path: string, template: string) => {
   if (
     !template ||
     !Config.templates.includes(template) ||
-    !Config.githubLinks[template] ||
-    !Config.githubLinks[template].endsWith('.git') ||
-    !Config.modules[template]
+    !Config.githubLinks[template.toString()] ||
+    !Config.githubLinks[template.toString()].endsWith('.git') ||
+    !Config.modules[template.toString()]
   ) {
     Utils.log(colors.red('Unknwon Template'), '\n');
     return;
   }
 
-  const modulesData = Config.modules[template];
+  const modulesData = Config.modules[template.toString()];
   const moduleQuestions: any[] = [
     {
       type: 'checkbox',
       name: 'modules',
       message: 'What other dependencies do you want?',
-      choices: Object.keys(Config.modules[template])
+      choices: Object.keys(Config.modules[template.toString()])
     }
   ];
 
@@ -153,10 +154,10 @@ export default (path: string, template: string) => {
 
     const initModule = async (moduleName: string) => {
       if (!requestDatabse) {
-        requestDatabse = !!modulesData[moduleName].databases;
+        requestDatabse = !!modulesData[moduleName.toString()].databases;
       }
 
-      if (modulesData[moduleName].replacements) {
+      if (modulesData[moduleName.toString()].replacements) {
         let replacementPromises: Promise<void>[] = [];
 
         const initReplacement = async (replacement: ReplacementOb) => {
@@ -166,7 +167,7 @@ export default (path: string, template: string) => {
             let replaceWith = replacement.with;
 
             if (replacement.ask) {
-              const questionsToAsk = replacement.ask!.map((rep) => {
+              const questionsToAsk = replacement.ask.map((rep) => {
                 return {
                   type: 'input',
                   name: rep,
@@ -181,8 +182,8 @@ export default (path: string, template: string) => {
               if (answers) {
                 Object.keys(answers).forEach((answ) => {
                   replaceWith = replaceWith.replace(
-                    new RegExp(answ, 'g'),
-                    answers[answ]
+                    new RE2(answ, 'g'),
+                    answers[answ.toString()]
                   );
                 });
               }
@@ -199,35 +200,37 @@ export default (path: string, template: string) => {
           });
         };
 
-        modulesData[moduleName].replacements!.forEach((replacement) => {
-          replacementPromises = [
-            ...replacementPromises,
-            initReplacement(replacement)
-          ];
-        });
+        modulesData[moduleName.toString()].replacements!.forEach(
+          (replacement) => {
+            replacementPromises = [
+              ...replacementPromises,
+              initReplacement(replacement)
+            ];
+          }
+        );
 
         await Promise.all(replacementPromises);
       }
 
       modulesToInstall = [
         ...modulesToInstall,
-        modulesData[moduleName].packageName
+        modulesData[moduleName.toString()].packageName
       ];
 
-      if (modulesData[moduleName].devPackage) {
+      if (modulesData[moduleName.toString()].devPackage) {
         devModulesToInstall = [
           ...devModulesToInstall,
-          modulesData[moduleName].devPackage!
+          modulesData[moduleName.toString()].devPackage!
         ];
       }
 
-      if (modulesData[moduleName].template) {
+      if (modulesData[moduleName.toString()].template) {
         templatesToInstall = [
           ...templatesToInstall,
           {
-            name: modulesData[moduleName].template!,
-            location: modulesData[moduleName].templateLocation,
-            saveName: modulesData[moduleName].templateName
+            name: modulesData[moduleName.toString()].template!,
+            location: modulesData[moduleName.toString()].templateLocation,
+            saveName: modulesData[moduleName.toString()].templateName
           }
         ];
       }
@@ -253,13 +256,14 @@ export default (path: string, template: string) => {
       replacements = JSON.parse(
         JSON.stringify(replacements).replace(
           /CLI_SEQUELIZE_DIALECT_NAME/gm,
-          modulesData['Sequelize ORM'].databases![dialect].dialectName
+          modulesData['Sequelize ORM'].databases![dialect.toString()]
+            .dialectName
         )
       );
 
       modulesToInstall = [
         ...modulesToInstall,
-        modulesData['Sequelize ORM'].databases![dialect].packageName
+        modulesData['Sequelize ORM'].databases![dialect.toString()].packageName
       ];
     }
 
@@ -309,18 +313,27 @@ export default (path: string, template: string) => {
     }
 
     Utils.log(colors.yellow('Cloning template...'));
-    execSync(`git clone ${Config.githubLinks[template]} "${fullPath}"`);
-    fs.rmdirSync(nodePath.join(fullPath, '.git'), {
-      recursive: true
+    execSync(
+      `git clone ${Config.githubLinks[template.toString()]} "${fullPath}"`
+    );
+
+    Config.deleteOnClone[template.toString()].map((item) => {
+      const itemPath = nodePath.join(fullPath, item);
+      if (!fs.existsSync(itemPath)) {
+        return false;
+      }
+
+      const isDir = fs.lstatSync(itemPath).isDirectory();
+      if (isDir) {
+        fs.rmdirSync(itemPath, {
+          recursive: true
+        });
+        return true;
+      }
+
+      fs.unlinkSync(itemPath);
+      return true;
     });
-
-    if (fs.existsSync(nodePath.join(fullPath, 'yarn.lock'))) {
-      fs.unlinkSync(nodePath.join(fullPath, 'yarn.lock'));
-    }
-
-    if (fs.existsSync(nodePath.join(fullPath, 'package-lock.json'))) {
-      fs.unlinkSync(nodePath.join(fullPath, 'package-lock.json'));
-    }
 
     Utils.log(colors.green('Cloning complete.'), '\n');
 
@@ -413,8 +426,8 @@ export default (path: string, template: string) => {
     }
 
     Object.keys(replacements).forEach((replacement) => {
-      const replaceWith = replacements[replacement].join('\n');
-      const replaceRegex = new RegExp(replacement, 'gi');
+      const replaceWith = replacements[replacement.toString()].join('\n');
+      const replaceRegex = new RE2(replacement, 'gi');
 
       switch (replacement) {
         case ReplaceType.IndexInjectMiddleware:
@@ -439,7 +452,10 @@ export default (path: string, template: string) => {
     });
 
     Object.keys(ReplaceType).forEach((type, index) => {
-      const replaceRegex = new RegExp(Object.values(ReplaceType)[index], 'gi');
+      const replaceRegex = new RE2(
+        Object.values(ReplaceType)[parseInt(index.toString())],
+        'gi'
+      );
       indexContents = indexContents.replace(replaceRegex, '');
       serverContents = serverContents.replace(replaceRegex, '');
     });
@@ -462,7 +478,7 @@ export default (path: string, template: string) => {
     try {
       fs.writeFileSync(
         nodePath.join(fullPath, Config.configName),
-        JSON.stringify(defaultConfig([template]), null, 2)
+        JSON.stringify(defaultConfig([template.toString()]), null, 2)
       );
     } catch {
       Utils.logError(
@@ -489,7 +505,7 @@ export default (path: string, template: string) => {
       colors.cyan(`${Utils.getInstallerName(useYarn)} run start`),
       'to run the compiled application',
       '\n\n',
-      Config.endMessage[template],
+      Config.endMessage[template.toString()],
       '\n',
       `By using ${colors.cyan(`npx ${Config.name} create`)}`,
       '\n',

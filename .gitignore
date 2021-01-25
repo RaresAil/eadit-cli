@@ -104,8 +104,8 @@ dist
 .tern-port
 
 # Build directory
-bin/**
-demo/**
+bin/
+demo/
 
 # MacOS
 .DS_Store

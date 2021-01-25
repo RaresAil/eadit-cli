@@ -19,7 +19,7 @@ export default (templates: string[]): EADITConfig => {
   templates.forEach((template) => {
     paths = {
       ...paths,
-      [template]: Config.paths[template]
+      [template]: Config.paths[template.toString()]
     };
   });
 

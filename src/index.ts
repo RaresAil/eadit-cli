@@ -11,6 +11,17 @@ let version: string = '0.0.0';
 let name: string = '';
 let dir: string | undefined;
 
+export interface FileCreateType {
+  [key: string]: {
+    file: string;
+    suffix: string;
+    ask: {
+      name: string;
+      question: string;
+    }[];
+  };
+}
+
 interface CLIConfig {
   root: string;
   version: string;
@@ -18,6 +29,11 @@ interface CLIConfig {
   configName: string;
   userDir?: string;
   templates: string[];
+
+  deleteOnClone: {
+    [key: string]: string[];
+  };
+
   fileCreate: {
     [key: string]: FileCreateType;
   };
@@ -34,17 +50,6 @@ interface CLIConfig {
   };
   endMessage: {
     [key: string]: string;
-  };
-}
-
-export interface FileCreateType {
-  [key: string]: {
-    file: string;
-    suffix: string;
-    ask: {
-      name: string;
-      question: string;
-    }[];
   };
 }
 
@@ -69,6 +74,11 @@ export default {
   userDir: dir,
 
   templates: ['Express', 'Discord.js'],
+
+  deleteOnClone: {
+    Express: ['.git', 'yarn.lock', 'package-lock.json', '.github'],
+    'Discord.js': ['.git', 'yarn.lock', 'package-lock.json', '.github']
+  },
 
   modules: {
     Express: ExpressModuleConfig.modules,
