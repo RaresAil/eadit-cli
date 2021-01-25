@@ -210,6 +210,7 @@ export default {
   },
   fileTypes: {
     Action: {
+      recursiveDir: true,
       file: 'action_model.txt',
       suffix: 'Action',
       ask: [

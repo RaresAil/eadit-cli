@@ -8,6 +8,17 @@ import { EADITConfig } from '../config/default';
 import Config from '../index';
 import Utils from './Utils';
 
+const execInDirSyncRecursive = (path: string, callback: any) => {
+  fs.readdirSync(path).forEach((item: string) => {
+    const itemPath = nodePath.join(path, item);
+    const isDir = fs.lstatSync(itemPath).isDirectory();
+    if (isDir) {
+      callback(itemPath);
+      execInDirSyncRecursive(itemPath, callback);
+    }
+  });
+};
+
 export default async () => {
   if (!Config.userDir || !fs.existsSync(nodePath.normalize(Config.userDir))) {
     Utils.log(colors.bold(colors.red('Unknwon Current Path')), '\n');
@@ -61,7 +72,7 @@ export default async () => {
       return;
     }
 
-    const pathToSave = nodePath.join(
+    let pathToSave = nodePath.join(
       Config.userDir,
       configData.paths[selectedTemplate.toString()][type.toString()]
     );
@@ -74,12 +85,31 @@ export default async () => {
       return;
     }
 
-    const { ask, file, suffix } = Config.fileCreate[
+    const { ask, file, suffix, recursiveDir } = Config.fileCreate[
       selectedTemplate.toString()
     ][type.toString()];
     if (!fs.existsSync(nodePath.join(Config.root, 'templates', file))) {
       Utils.logError(colors.bold(colors.red('No template was found :(')));
       return;
+    }
+
+    if (recursiveDir) {
+      let directories: string[] = ['/'];
+      execInDirSyncRecursive(pathToSave, (directory: string) => {
+        directories = [...directories, directory.replace(pathToSave, '')];
+      });
+
+      const { selectedDirectory } = await prompt([
+        {
+          type: 'list',
+          name: 'selectedDirectory',
+          message:
+            'Your actions directory has Subdirectories ("/" is the root)',
+          choices: directories
+        }
+      ]);
+
+      pathToSave = nodePath.join(pathToSave, selectedDirectory);
     }
 
     let templateFile = fs

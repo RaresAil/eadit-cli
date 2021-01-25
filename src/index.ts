@@ -19,6 +19,7 @@ export interface FileCreateType {
       name: string;
       question: string;
     }[];
+    recursiveDir?: boolean;
   };
 }
 
