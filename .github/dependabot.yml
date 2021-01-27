@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    commit-message:
+      prefix: "npm"
+    labels:
+      - "dependencies"
+    reviewers:
+      - "RaresAil"
+    versioning-strategy: increase
