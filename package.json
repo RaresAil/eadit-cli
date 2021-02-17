@@ -1,6 +1,6 @@
 {
   "name": "eadit-cli",
-  "version": "6.1.1",
+  "version": "6.1.2",
   "description": "CLI for 'adr-express-ts'",
   "main": "bin/index.js",
   "preferGlobal": true,
