@@ -58,7 +58,7 @@
     "async-lock": "^1.2.8",
     "colors": "^1.4.0",
     "commander": "^7.1.0",
-    "inquirer": "^7.3.3",
+    "inquirer": "^8.0.0",
     "re2": "^1.15.9"
   }
 }
