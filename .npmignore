@@ -4,3 +4,5 @@ demo/
 .eslintignore
 .eslintrc.json
 .gitignore
+.mocharc.json
+nodemon.json

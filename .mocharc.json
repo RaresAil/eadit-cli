@@ -1,0 +1,13 @@
+{
+  "spec": "./src/**/__tests__/**/*.spec.ts",
+  "file": "./src/__tests__/init.ts",
+  "require": ["ts-node/register"],
+  "check-leaks": true,
+  "async-only": true,
+  "extension": ["ts"],
+  "timeout": "120000",
+  "reporter": "spec",
+  "colors": true,
+  "exit": true,
+  "global": []
+}
