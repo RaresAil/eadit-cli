@@ -1,21 +1,26 @@
-import { rm } from 'fs/promises';
 import { expect } from 'chai';
+import Mocha from 'mocha';
 import { EOL } from 'os';
+import { rm } from 'fs';
 import path from 'path';
 
 import { execute, ENTER } from '../utils/cmd';
 import questions from '../utils/questions';
 
-const clearProject = async () => {
-  try {
-    await rm(path.join(process.cwd(), 'demo'), {
+const clearProject = (done: Mocha.Done) => {
+  rm(
+    path.join(process.cwd(), 'demo'),
+    {
       recursive: true
-    });
-  } catch {}
+    },
+    () => {
+      done();
+    }
+  );
 };
 
 describe('Create express project', () => {
-  after(async () => await clearProject());
+  after(clearProject);
 
   it('Wihtout any deps', async () => {
     const response = ((await execute(
