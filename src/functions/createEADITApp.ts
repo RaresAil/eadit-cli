@@ -303,7 +303,7 @@ export default (path: string, template: string) => {
         const filePath = nodePath.join(fullPath, file);
 
         if (fs.lstatSync(filePath).isDirectory()) {
-          fs.rmSync(nodePath.join(filePath), {
+          fs.rmdirSync(nodePath.join(filePath), {
             recursive: true
           });
         } else {
@@ -325,7 +325,7 @@ export default (path: string, template: string) => {
 
       const isDir = fs.lstatSync(itemPath).isDirectory();
       if (isDir) {
-        fs.rmSync(itemPath, {
+        fs.rmdirSync(itemPath, {
           recursive: true
         });
         return true;

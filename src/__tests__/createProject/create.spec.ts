@@ -1,14 +1,14 @@
 import { expect } from 'chai';
 import Mocha from 'mocha';
 import { EOL } from 'os';
-import { rm } from 'fs';
+import { rmdir } from 'fs';
 import path from 'path';
 
 import { execute, ENTER } from '../utils/cmd';
 import questions from '../utils/questions';
 
 const clearProject = (done: Mocha.Done) => {
-  rm(
+  rmdir(
     path.join(process.cwd(), 'demo'),
     {
       recursive: true
