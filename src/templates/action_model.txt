@@ -6,7 +6,7 @@ import {
   Retrive,
   Request,
   Response
-} from 'adr-express-ts';
+} from '@adr-express-ts/core';
 
 @Action('/__ACTION_ROUTE__')
 export default class __ACTION_NAME__Action {

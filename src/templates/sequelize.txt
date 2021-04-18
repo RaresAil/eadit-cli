@@ -1,4 +1,4 @@
-import { Inject, InjectedEntity, Retrive, Entity } from 'adr-express-ts';
+import { Inject, InjectedEntity, Retrive, Entity } from '@adr-express-ts/core';
 import { Sequelize, Model, STRING, INTEGER } from 'sequelize';
 
 class Demo extends Model { }

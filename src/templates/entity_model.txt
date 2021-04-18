@@ -1,4 +1,4 @@
-import { Inject, InjectedEntity, Retrive, Entity } from 'adr-express-ts';
+import { Inject, InjectedEntity, Retrive, Entity } from '@adr-express-ts/core';
 
 @Inject
 @Entity('__ENTITY_NAME__')

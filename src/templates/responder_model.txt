@@ -1,4 +1,4 @@
-import { Inject, Responder } from 'adr-express-ts';
+import { Inject, Responder } from '@adr-express-ts/core';
 import { Response } from 'express';
 
 @Inject

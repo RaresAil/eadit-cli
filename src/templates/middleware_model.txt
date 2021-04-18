@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
-import { Middleware } from 'adr-express-ts/lib/@types';
-import { Inject } from 'adr-express-ts';
+import { Middleware } from '@adr-express-ts/core/lib/@types';
+import { Inject } from '@adr-express-ts/core';
 
 @Inject
 export default class __MIDDLE_NAME__Middleware implements Middleware {

@@ -1,4 +1,4 @@
-import { Inject, InjectedEntity, Retrive, Entity } from 'adr-express-ts';
+import { Inject, InjectedEntity, Retrive, Entity } from '@adr-express-ts/core';
 import { Schema, Mongoose } from 'mongoose';
 
 @Inject
