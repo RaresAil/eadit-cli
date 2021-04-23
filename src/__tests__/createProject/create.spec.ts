@@ -1,14 +1,14 @@
 import { expect } from 'chai';
 import Mocha from 'mocha';
 import { EOL } from 'os';
-import { rmdir } from 'fs';
+import fs from 'fs';
 import path from 'path';
 
 import { execute, ENTER } from '../utils/cmd';
 import questions from '../utils/questions';
 
 const clearProject = (done: Mocha.Done) => {
-  rmdir(
+  const args = [
     path.join(process.cwd(), 'demo'),
     {
       recursive: true
@@ -16,7 +16,12 @@ const clearProject = (done: Mocha.Done) => {
     () => {
       done();
     }
-  );
+  ];
+  if (require('fs')?.rm) {
+    (fs.rm as any)(...args);
+  } else {
+    (fs.rmdir as any)(...args);
+  }
 };
 
 describe('Create express project', () => {

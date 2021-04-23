@@ -1,7 +1,6 @@
 import { prompt } from 'inquirer';
 import colors from 'colors/safe';
 import nodePath from 'path';
-import RE2 from 're2';
 import fs from 'fs';
 
 import { EADITConfig } from '../config/default';
@@ -146,7 +145,7 @@ export default async () => {
         const place = answers[search.toString()].startsWith('/')
           ? answers[search.toString()].substr(1)
           : answers[search.toString()];
-        templateFile = templateFile.replace(new RE2(search, 'g'), place);
+        templateFile = templateFile.replace(new RegExp(search, 'g'), place);
       });
 
       if (fs.existsSync(nodePath.join(pathToSave, nameToSave))) {

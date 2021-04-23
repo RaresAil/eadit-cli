@@ -18,6 +18,7 @@
     "no-console": "error",
     "space-before-function-paren": "off",
     "security/detect-non-literal-fs-filename": "off",
-    "security/detect-non-literal-require": "off"
+    "security/detect-non-literal-require": "off",
+    "security/detect-non-literal-regexp": "off"
   }
 }

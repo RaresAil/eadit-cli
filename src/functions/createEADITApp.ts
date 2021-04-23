@@ -3,7 +3,6 @@ import AsyncLock from 'async-lock';
 import { prompt } from 'inquirer';
 import colors from 'colors/safe';
 import nodePath from 'path';
-import RE2 from 're2';
 import fs from 'fs';
 
 import defaultConfig from '../config/default';
@@ -182,7 +181,7 @@ export default (path: string, template: string) => {
               if (answers) {
                 Object.keys(answers).forEach((answ) => {
                   replaceWith = replaceWith.replace(
-                    new RE2(answ, 'g'),
+                    new RegExp(answ, 'g'),
                     answers[answ.toString()]
                   );
                 });
@@ -427,7 +426,7 @@ export default (path: string, template: string) => {
 
     Object.keys(replacements).forEach((replacement) => {
       const replaceWith = replacements[replacement.toString()].join('\n');
-      const replaceRegex = new RE2(replacement, 'gi');
+      const replaceRegex = new RegExp(replacement, 'gi');
 
       switch (replacement) {
         case ReplaceType.IndexInjectMiddleware:
@@ -452,7 +451,7 @@ export default (path: string, template: string) => {
     });
 
     Object.keys(ReplaceType).forEach((type, index) => {
-      const replaceRegex = new RE2(
+      const replaceRegex = new RegExp(
         Object.values(ReplaceType)[parseInt(index.toString())],
         'gi'
       );

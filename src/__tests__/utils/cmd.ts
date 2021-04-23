@@ -5,7 +5,6 @@ import concat from 'concat-stream';
 import Inputs from './@types/Inputs';
 import createProcess from './createProcess';
 import ExecuteOptions from './@types/ExecuteOptions';
-import RE2 from 're2';
 
 export const SPACE = '\x20';
 export const ENTER = '\x0D';
@@ -37,7 +36,7 @@ export const execute = (
     process.stdout?.on('data', (data) => {
       let line: string = data.toString();
       respondedInputs.map((inp) => {
-        line = line.replace(new RE2(inp, 'g'), '');
+        line = line.replace(new RegExp(inp, 'g'), '');
         return null;
       });
 
