@@ -53,7 +53,7 @@
     "chai": "^4.3.4",
     "concat-stream": "^2.0.0",
     "cross-spawn": "^7.0.3",
-    "eslint": "^7.26.0",
+    "eslint": "^7.28.0",
     "eslint-config-standard": "^16.0.2",
     "eslint-plugin-import": "^2.23.2",
     "eslint-plugin-node": "^11.1.0",
