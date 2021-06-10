@@ -27,23 +27,25 @@ const clearProject = (done: Mocha.Done) => {
 describe('Create express project', () => {
   after(clearProject);
 
-  it('Wihtout any deps', async () => {
-    const response = ((await execute(
-      'bin/commands.js',
-      ['create', 'demo'],
-      {
-        [questions.template]: ENTER,
-        [questions.path]: `Y ${ENTER}`,
-        [questions.yarn]: `Y ${ENTER}`,
-        [questions.deps]: ENTER,
-        [questions.clearDir]: `Y ${ENTER}`
-      },
-      {
-        env: {
-          DEBUG: true
+  it('Without any deps', async () => {
+    const response = (
+      (await execute(
+        'bin/commands.js',
+        ['create', 'demo'],
+        {
+          [questions.template]: ENTER,
+          [questions.path]: `Y ${ENTER}`,
+          [questions.yarn]: `Y ${ENTER}`,
+          [questions.deps]: ENTER,
+          [questions.clearDir]: `Y ${ENTER}`
+        },
+        {
+          env: {
+            DEBUG: true
+          }
         }
-      }
-    )) as Promise<any>)
+      )) as Promise<any>
+    )
       .toString()
       .trim()
       .split(EOL)

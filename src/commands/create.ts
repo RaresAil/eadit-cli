@@ -12,7 +12,7 @@ import createFileByType from '../functions/createFileByType';
 export default () => {
   program.command('create [path]').action((path: string) => {
     if (!Config.userDir || !fs.existsSync(nodePath.normalize(Config.userDir))) {
-      Utils.log(colors.red('Unknwon Current Path'), '\n');
+      Utils.log(colors.red('Unknown Current Path'), '\n');
       return;
     }
 

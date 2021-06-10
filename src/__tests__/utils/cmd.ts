@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import RE2 from 're2';
 import { constants } from 'os';
 import concat from 'concat-stream';
 
@@ -36,7 +37,7 @@ export const execute = (
     process.stdout?.on('data', (data) => {
       let line: string = data.toString();
       respondedInputs.map((inp) => {
-        line = line.replace(new RegExp(inp, 'g'), '');
+        line = line.replace(new RE2(inp, 'g'), '');
         return null;
       });
 

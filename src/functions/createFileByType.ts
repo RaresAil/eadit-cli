@@ -1,6 +1,7 @@
 import { prompt } from 'inquirer';
 import colors from 'colors/safe';
 import nodePath from 'path';
+import RE2 from 're2';
 import fs from 'fs';
 
 import { EADITConfig } from '../config/default';
@@ -20,7 +21,7 @@ const execInDirSyncRecursive = (path: string, callback: any) => {
 
 export default async () => {
   if (!Config.userDir || !fs.existsSync(nodePath.normalize(Config.userDir))) {
-    Utils.log(colors.bold(colors.red('Unknwon Current Path')), '\n');
+    Utils.log(colors.bold(colors.red('Unknown Current Path')), '\n');
     return;
   }
 
@@ -47,7 +48,7 @@ export default async () => {
     }
 
     if (!selectedTemplate || !configData.templates.includes(selectedTemplate)) {
-      Utils.logError(colors.bold(colors.red('Invalid tempalte.')));
+      Utils.logError(colors.bold(colors.red('Invalid template.')));
       return;
     }
 
@@ -79,14 +80,13 @@ export default async () => {
       Utils.logError(
         `${colors.bold(colors.red('The path'))} %o`,
         configData.paths[selectedTemplate.toString()][type.toString()],
-        colors.bold(colors.red("dosen't exists!"))
+        colors.bold(colors.red("doesn't exists!"))
       );
       return;
     }
 
-    const { ask, file, suffix, recursiveDir } = Config.fileCreate[
-      selectedTemplate.toString()
-    ][type.toString()];
+    const { ask, file, suffix, recursiveDir } =
+      Config.fileCreate[selectedTemplate.toString()][type.toString()];
     if (!fs.existsSync(nodePath.join(Config.root, 'templates', file))) {
       Utils.logError(colors.bold(colors.red('No template was found :(')));
       return;
@@ -145,7 +145,7 @@ export default async () => {
         const place = answers[search.toString()].startsWith('/')
           ? answers[search.toString()].substr(1)
           : answers[search.toString()];
-        templateFile = templateFile.replace(new RegExp(search, 'g'), place);
+        templateFile = templateFile.replace(new RE2(search, 'g'), place);
       });
 
       if (fs.existsSync(nodePath.join(pathToSave, nameToSave))) {
