@@ -1,0 +1,27 @@
+import { Middleware } from '@adr-express-ts/core/lib/@types';
+import { Request, Response, NextFunction } from 'express';
+import { Inject, Retrieve } from '@adr-express-ts/core';
+
+import AuthorizationCodeGrant from '../AuthorizationCodeGrant';
+
+@Inject
+export default class CodeGrantMiddleware implements Middleware {
+  @Retrieve('AuthorizationCodeGrant')
+  private AuthorizationCodeGrant?: AuthorizationCodeGrant;
+  private functionMiddleware?: any;
+
+  public async middleware(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    if (!this.functionMiddleware) {
+      this.functionMiddleware = this.AuthorizationCodeGrant?.server.authorize();
+      if (!this.functionMiddleware) {
+        throw new Error('INVALID MIDDLEWARE');
+      }
+    }
+
+    return this.functionMiddleware(req, res, next);
+  }
+}

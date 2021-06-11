@@ -72,4 +72,23 @@ export default abstract class Utils {
     // eslint-disable-next-line no-console
     console.error(...args);
   }
+
+  public static copyDir(source: string, destination: string) {
+    fs.mkdirSync(destination, {
+      recursive: true
+    });
+
+    fs.readdirSync(source, { withFileTypes: true }).map((entry) => {
+      const srcPath = nodePath.join(source, entry.name);
+      const destPath = nodePath.join(destination, entry.name);
+
+      return entry.isDirectory()
+        ? Utils.copyDir(srcPath, destPath)
+        : fs.copyFileSync(
+            srcPath,
+            destPath.replace('.txt', '.ts'),
+            fs.constants.COPYFILE_FICLONE
+          );
+    });
+  }
 }

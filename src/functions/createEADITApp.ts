@@ -26,17 +26,23 @@ export interface ReplacementsObject {
 }
 
 export interface ReplacementOb {
+  key?: string;
   type: ReplaceType;
   with: string;
   ask?: string[];
 }
 
 export interface ModuleData {
-  packageName: string;
-  devPackage?: string;
+  packageName: string | string[];
+  devPackage?: string | string[];
   template?: string;
   templateName?: string;
   templateLocation?: string[];
+  multipleTemplates?: {
+    name?: string;
+    template: string;
+    location: string[];
+  }[];
   replacements?: ReplacementOb[];
   databases?: {
     [key: string]: {
@@ -140,9 +146,10 @@ export default (path: string, template: string) => {
 
     const { modules } = await prompt(moduleQuestions);
 
-    let modulesToInstall: string[] = [];
+    const modulesToInstall = new Set<string>();
     let replacements: ReplacementsObject = {};
-    let devModulesToInstall: string[] = [];
+    const globalReplacementKeys = new Set<string>();
+    const devModulesToInstall = new Set<string>();
     let templatesToInstall: {
       name: string;
       saveName?: string;
@@ -153,13 +160,12 @@ export default (path: string, template: string) => {
     let promises: Promise<void>[] = [];
 
     const initModule = async (moduleName: string) => {
+      const moduleData = modulesData[moduleName.toString()];
       if (!requestDatabase) {
-        requestDatabase = !!modulesData[moduleName.toString()].databases;
+        requestDatabase = !!moduleData.databases;
       }
 
-      if (modulesData[moduleName.toString()].replacements) {
-        let replacementPromises: Promise<void>[] = [];
-
+      if (moduleData.replacements) {
         const initReplacement = async (replacement: ReplacementOb) => {
           await lock.acquire('ask-replace', async (done) => {
             let oldData = replacements[replacement.type] ?? [];
@@ -200,38 +206,66 @@ export default (path: string, template: string) => {
           });
         };
 
-        modulesData[moduleName.toString()].replacements!.forEach(
-          (replacement) => {
-            replacementPromises = [
-              ...replacementPromises,
-              initReplacement(replacement)
-            ];
-          }
+        const replacementPromises: ReplacementOb[] =
+          moduleData.replacements.reduce(
+            (acc: ReplacementOb[], current: ReplacementOb) => {
+              if (current.key && globalReplacementKeys.has(current.key)) {
+                return acc;
+              }
+
+              if (current.key) {
+                globalReplacementKeys.add(current.key);
+              }
+
+              return [...acc, current];
+            },
+            []
+          );
+
+        await Promise.all(
+          replacementPromises.map((replacement) => initReplacement(replacement))
         );
-
-        await Promise.all(replacementPromises);
       }
 
-      modulesToInstall = [
-        ...modulesToInstall,
-        modulesData[moduleName.toString()].packageName
-      ];
-
-      if (modulesData[moduleName.toString()].devPackage) {
-        devModulesToInstall = [
-          ...devModulesToInstall,
-          modulesData[moduleName.toString()].devPackage!
-        ];
+      if (Array.isArray(moduleData.packageName)) {
+        moduleData.packageName.forEach((packageName) =>
+          modulesToInstall.add(packageName)
+        );
+      } else {
+        modulesToInstall.add(moduleData.packageName);
       }
 
-      if (modulesData[moduleName.toString()].template) {
+      if (moduleData.devPackage) {
+        if (Array.isArray(moduleData.devPackage)) {
+          moduleData.devPackage.forEach((devPackage) =>
+            devModulesToInstall.add(devPackage)
+          );
+        } else {
+          devModulesToInstall.add(moduleData.devPackage);
+        }
+      }
+
+      const templateToAdd = moduleData?.template;
+      const extraTemplates = moduleData?.multipleTemplates;
+      if (templateToAdd) {
         templatesToInstall = [
           ...templatesToInstall,
           {
-            name: modulesData[moduleName.toString()].template!,
-            location: modulesData[moduleName.toString()].templateLocation,
-            saveName: modulesData[moduleName.toString()].templateName
+            name: templateToAdd,
+            location: moduleData.templateLocation,
+            saveName: moduleData.templateName
           }
+        ];
+      }
+
+      if (extraTemplates) {
+        templatesToInstall = [
+          ...templatesToInstall,
+          ...extraTemplates.map(({ name, template, location }) => ({
+            name: template,
+            saveName: name,
+            location
+          }))
         ];
       }
     };
@@ -261,20 +295,19 @@ export default (path: string, template: string) => {
         )
       );
 
-      modulesToInstall = [
-        ...modulesToInstall,
+      modulesToInstall.add(
         modulesData['Sequelize ORM'].databases![dialect.toString()].packageName
-      ];
+      );
     }
 
     const npmInstallModules = Utils.getInstallCommand(
-      modulesToInstall,
+      Array.from(modulesToInstall),
       false,
       useYarn
     );
 
     const npmInstallDevModules = Utils.getInstallCommand(
-      devModulesToInstall,
+      Array.from(devModulesToInstall),
       true,
       useYarn
     );
@@ -341,20 +374,20 @@ export default (path: string, template: string) => {
     execSync(`cd "${fullPath}" && ${Utils.getInstallAll(useYarn)}`);
     Utils.log(colors.green('Dependencies installed.'), '\n');
 
-    if (modulesToInstall.length > 0) {
+    if (modulesToInstall.size > 0) {
       Utils.log(
         colors.yellow(
-          `Installing extra dependencies... (${modulesToInstall.length})`
+          `Installing extra dependencies... (${modulesToInstall.size})`
         )
       );
       execSync(`cd "${fullPath}" && ${npmInstallModules}`);
       Utils.log(colors.green('Extra dependencies installed.'), '\n');
     }
 
-    if (devModulesToInstall.length > 0) {
+    if (devModulesToInstall.size > 0) {
       Utils.log(
         colors.yellow(
-          `Installing extra dev-dependencies... (${devModulesToInstall.length})`
+          `Installing extra dev-dependencies... (${devModulesToInstall.size})`
         )
       );
       execSync(`cd "${fullPath}" && ${npmInstallDevModules}`);
@@ -364,7 +397,7 @@ export default (path: string, template: string) => {
     if (templatesToInstall.length > 0) {
       Utils.log(
         colors.yellow(
-          `Installing templates for extra dependencies... (${modulesToInstall.length})`
+          `Installing templates for extra dependencies... (${modulesToInstall.size})`
         )
       );
 
@@ -379,22 +412,41 @@ export default (path: string, template: string) => {
           ...(template.location || ['src', 'domain', 'entities'])
         );
 
-        if (fs.existsSync(templatePath) && fs.existsSync(destination)) {
-          fs.copyFileSync(
-            templatePath,
-            nodePath.join(
-              destination,
-              template.saveName
-                ? `${template.saveName}.ts`
-                : `${template.name.replace('.txt', '')}Model.ts`
-            )
-          );
-        } else {
-          Utils.logError(
-            `Unable to install template "${template.name.replace('.txt', '')}"`
-          );
+        let templateInstalled = false;
+
+        try {
+          const stat = fs.statSync(templatePath);
+
+          if (stat.isDirectory()) {
+            Utils.copyDir(templatePath, destination);
+          } else {
+            if (!fs.existsSync(destination)) {
+              throw new Error('No destination!');
+            }
+
+            fs.copyFileSync(
+              templatePath,
+              nodePath.join(
+                destination,
+                template.saveName
+                  ? `${template.saveName}.ts`
+                  : `${template.name.replace('.txt', '')}Model.ts`
+              )
+            );
+            templateInstalled = true;
+          }
+        } finally {
+          if (!templateInstalled) {
+            Utils.logError(
+              `Unable to install template "${template.name.replace(
+                '.txt',
+                ''
+              )}"`
+            );
+          }
         }
       });
+
       Utils.log(
         colors.green('Templates for extra dependencies installed.'),
         '\n'

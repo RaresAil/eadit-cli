@@ -29,26 +29,28 @@ rawCommands.forEach((command) => {
   } catch {}
 });
 
-try {
-  const latestVersion = execSync(`npm show ${Config.name} version`)
-    .toString('utf8')
-    .trim()
-    .replace(/\r?\n|\r/g, '');
+if (process.env.NODE_ENV !== 'dev') {
+  try {
+    const latestVersion = execSync(`npm show ${Config.name} version`)
+      .toString('utf8')
+      .trim()
+      .replace(/\r?\n|\r/g, '');
 
-  if (latestVersion && Config && Config.version) {
-    if (latestVersion !== Config.version) {
-      Utils.log(
-        '\n\n',
-        colors.yellow('WARNING'),
-        colors.gray(':'),
-        colors.white('You are not using the latest version!'),
-        `${colors.gray('(')}Last: ${colors.green(latestVersion)}`,
-        `Current: ${colors.red(Config.version)}${colors.gray(')')}`,
-        '\n\n'
-      );
+    if (latestVersion && Config && Config.version) {
+      if (latestVersion !== Config.version) {
+        Utils.log(
+          '\n\n',
+          colors.yellow('WARNING'),
+          colors.gray(':'),
+          colors.white('You are not using the latest version!'),
+          `${colors.gray('(')}Last: ${colors.green(latestVersion)}`,
+          `Current: ${colors.red(Config.version)}${colors.gray(')')}`,
+          '\n\n'
+        );
+      }
     }
-  }
-} catch {}
+  } catch {}
+}
 
 (() => {
   program.parseOptions(process.argv);
