@@ -1,13 +1,13 @@
 import Handler, { Command, CommandClass, PermissionType } from 'discordjs-dependency-injection-typescript/lib/Handler';
 import { Message } from 'discord.js';
-import { Retrive } from 'discordjs-dependency-injection-typescript/lib/Injector';
+import { Retrieve } from 'discordjs-dependency-injection-typescript/lib/Injector';
 
 @Command('__DIS_COMMAND_NAME__', '__DIS_COMMAND_DESC__', {
   permissions: [],
   parameters: []
 })
 export default class __DIS_COMMAND_NAME__Command implements CommandClass {
-  @Retrive('Handler')
+  @Retrieve('Handler')
   private handler?: Handler;
 
   public async execute (message: Message, par1: string) {

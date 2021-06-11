@@ -1,4 +1,4 @@
-import { Inject, InjectedEntity, Retrive, Entity } from '@adr-express-ts/core';
+import { Inject, InjectedEntity, Retrieve, Entity } from '@adr-express-ts/core';
 import { Schema, Mongoose } from 'mongoose';
 
 @Inject
@@ -6,7 +6,7 @@ import { Schema, Mongoose } from 'mongoose';
 export default class MongooseModelName implements InjectedEntity {
   // Mongoose must be injected first!
   // e.g. Injector.inject('Mongoose', mongoose, InjectType.Variable);
-  @Retrive('Mongoose')
+  @Retrieve('Mongoose')
   private mongoose?: Mongoose;
 
   async onLoad (): Promise<void> {

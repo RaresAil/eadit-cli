@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import { Middleware } from '@adr-express-ts/core/lib/@types';
-import { Inject, Retrive } from '@adr-express-ts/core';
+import { Inject, Retrieve } from '@adr-express-ts/core';
 
 import Tokens from 'csrf';
 
@@ -47,7 +47,7 @@ export default class CSRFMiddleware implements Middleware<CSRFRequest> {
 
 @Inject
 export class CSRFProtectionMiddleware implements Middleware {
-  @Retrive('CSRFMiddleware')
+  @Retrieve('CSRFMiddleware')
   private CSRFMiddleware?: CSRFMiddleware;
 
   private rejectResponse(res: Response): Response<any> {

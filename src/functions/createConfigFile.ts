@@ -55,7 +55,7 @@ export default async (): Promise<void> => {
     }
 
     if (!module) {
-      Utils.log(colors.red('Unknwon Template'));
+      Utils.log(colors.red('Unknown Template'));
       return;
     }
 
@@ -64,6 +64,6 @@ export default async (): Promise<void> => {
       JSON.stringify(defaultConfig([module]), null, 2)
     );
   } catch {
-    Utils.log(colors.red('Unknwon Error'));
+    Utils.log(colors.red('Unknown Error'));
   }
 };

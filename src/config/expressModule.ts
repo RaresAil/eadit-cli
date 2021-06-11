@@ -39,8 +39,7 @@ const modulesData: ModulesData = {
       },
       {
         type: ReplaceType.IndexInjectVar,
-        with:
-          "Injector.inject('MongooseConfig', { connectionURL: 'MONGO_CONN_URL' }, InjectType.Variable);",
+        with: "Injector.inject('MongooseConfig', { connectionURL: 'MONGO_CONN_URL' }, InjectType.Variable);",
         ask: ['MONGO_CONN_URL']
       },
       {
@@ -48,16 +47,16 @@ const modulesData: ModulesData = {
         with: "Injector.inject('Mongoose', mongoose, InjectType.Variable);"
       },
       {
-        type: ReplaceType.ServerRetriveVar,
+        type: ReplaceType.ServerRetrieveVar,
         with: `
-  @Retrive('Mongoose')
+  @Retrieve('Mongoose')
   private mongoose?: Mongoose;
         `
       },
       {
-        type: ReplaceType.ServerRetriveVar,
+        type: ReplaceType.ServerRetrieveVar,
         with: `
-  @Retrive('MongooseConfig')
+  @Retrieve('MongooseConfig')
   private mongooseConfig?: any;
         `
       },
@@ -137,9 +136,9 @@ Injector.inject('Sequelize', new Sequelize(
         ]
       },
       {
-        type: ReplaceType.ServerRetriveVar,
+        type: ReplaceType.ServerRetrieveVar,
         with: `
-  @Retrive('Sequelize')
+  @Retrieve('Sequelize')
   private sequelize?: Sequelize;
         `
       },
@@ -182,18 +181,15 @@ Injector.inject('Sequelize', new Sequelize(
     replacements: [
       {
         type: ReplaceType.IndexImport,
-        with:
-          "import CSRFMiddleware, { CSRFProtectionMiddleware } from './middlewares/CSRFMiddleware';"
+        with: "import CSRFMiddleware, { CSRFProtectionMiddleware } from './middlewares/CSRFMiddleware';"
       },
       {
         type: ReplaceType.IndexInjectVar,
-        with:
-          "Injector.inject('CSRFMiddleware', CSRFMiddleware, InjectType.Middleware);"
+        with: "Injector.inject('CSRFMiddleware', CSRFMiddleware, InjectType.Middleware);"
       },
       {
         type: ReplaceType.IndexInjectVar,
-        with:
-          "Injector.inject('CSRFProtectionMiddleware', CSRFProtectionMiddleware, InjectType.Middleware);"
+        with: "Injector.inject('CSRFProtectionMiddleware', CSRFProtectionMiddleware, InjectType.Middleware);"
       }
     ]
   }

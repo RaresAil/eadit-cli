@@ -1,4 +1,4 @@
-import { Inject, InjectedEntity, Retrive, Entity } from '@adr-express-ts/core';
+import { Inject, InjectedEntity, Retrieve, Entity } from '@adr-express-ts/core';
 import { Sequelize, Model, STRING, INTEGER } from 'sequelize';
 
 class Demo extends Model { }
@@ -6,7 +6,7 @@ class Demo extends Model { }
 @Inject
 @Entity('SequelizeModelName')
 export default class SequelizeModelName implements InjectedEntity {
-  @Retrive('Sequelize')
+  @Retrieve('Sequelize')
   private sequelize?: Sequelize;
 
   private __entity?: typeof Demo;

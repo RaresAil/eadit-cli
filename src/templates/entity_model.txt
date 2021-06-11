@@ -1,9 +1,9 @@
-import { Inject, InjectedEntity, Retrive, Entity } from '@adr-express-ts/core';
+import { Inject, InjectedEntity, Retrieve, Entity } from '@adr-express-ts/core';
 
 @Inject
 @Entity('__ENTITY_NAME__')
 export default class __ENTITY_NAME__Entity implements InjectedEntity {
-  @Retrive('ORM')
+  @Retrieve('ORM')
   private orm?: any;
 
   async onLoad (): Promise<void> {

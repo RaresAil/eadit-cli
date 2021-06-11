@@ -6,3 +6,4 @@ demo/
 .gitignore
 .mocharc.json
 nodemon.json
+.vscode

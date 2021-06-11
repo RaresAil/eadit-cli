@@ -3,6 +3,7 @@ import AsyncLock from 'async-lock';
 import { prompt } from 'inquirer';
 import colors from 'colors/safe';
 import nodePath from 'path';
+import RE2 from 're2';
 import fs from 'fs';
 
 import defaultConfig from '../config/default';
@@ -14,7 +15,7 @@ const lock = new AsyncLock();
 export enum ReplaceType {
   IndexInjectMiddleware = '// __EADIT_CLI_PLACEHOLDER_INJECT_MIDDLEWARES',
   ServerBeforeStart = '// __EADIT_CLI_PLACEHOLDER_BEFORE_SERVER_START',
-  ServerRetriveVar = '// __EADIT_CLI_PLACEHOLDER_SERVER_RETRIVE',
+  ServerRetrieveVar = '// __EADIT_CLI_PLACEHOLDER_SERVER_RETRIEVE',
   ServerImport = '// __EADIT_CLI_PLACEHOLDER_SERVER_IMPORTS',
   IndexInjectVar = '// __EADIT_CLI_PLACEHOLDER_INJECT_VARS',
   IndexImport = '// __EADIT_CLI_PLACEHOLDER_IMPORTS'
@@ -51,7 +52,7 @@ export interface ModulesData {
 
 export default (path: string, template: string) => {
   if (!path || path.toString().trim() === '') {
-    Utils.log(colors.red('Unknwon Path'), '\n');
+    Utils.log(colors.red('Unknown Path'), '\n');
     return;
   }
 
@@ -62,7 +63,7 @@ export default (path: string, template: string) => {
     !Config.githubLinks[template.toString()].endsWith('.git') ||
     !Config.modules[template.toString()]
   ) {
-    Utils.log(colors.red('Unknwon Template'), '\n');
+    Utils.log(colors.red('Unknown Template'), '\n');
     return;
   }
 
@@ -77,7 +78,7 @@ export default (path: string, template: string) => {
   ];
 
   if (!Config.userDir || !fs.existsSync(nodePath.normalize(Config.userDir))) {
-    Utils.log(colors.red('Unknwon Current Path'), '\n');
+    Utils.log(colors.red('Unknown Current Path'), '\n');
     return;
   }
 
@@ -147,13 +148,13 @@ export default (path: string, template: string) => {
       saveName?: string;
       location?: string[];
     }[] = [];
-    let requestDatabse = false;
+    let requestDatabase = false;
 
     let promises: Promise<void>[] = [];
 
     const initModule = async (moduleName: string) => {
-      if (!requestDatabse) {
-        requestDatabse = !!modulesData[moduleName.toString()].databases;
+      if (!requestDatabase) {
+        requestDatabase = !!modulesData[moduleName.toString()].databases;
       }
 
       if (modulesData[moduleName.toString()].replacements) {
@@ -179,10 +180,10 @@ export default (path: string, template: string) => {
               const answers = await prompt(questionsToAsk);
 
               if (answers) {
-                Object.keys(answers).forEach((answ) => {
+                Object.keys(answers).forEach((answer) => {
                   replaceWith = replaceWith.replace(
-                    new RegExp(answ, 'g'),
-                    answers[answ.toString()]
+                    new RE2(answer, 'g'),
+                    answers[answer.toString()]
                   );
                 });
               }
@@ -241,7 +242,7 @@ export default (path: string, template: string) => {
 
     await Promise.all(promises);
 
-    if (requestDatabse) {
+    if (requestDatabase) {
       const sequelizeDatabase: any[] = [
         {
           type: 'list',
@@ -367,15 +368,15 @@ export default (path: string, template: string) => {
         )
       );
 
-      templatesToInstall.forEach((tempalte) => {
+      templatesToInstall.forEach((template) => {
         const templatePath = nodePath.join(
           Config.root,
           'templates',
-          tempalte.name
+          template.name
         );
         const destination = nodePath.join(
           fullPath,
-          ...(tempalte.location || ['src', 'domain', 'entities'])
+          ...(template.location || ['src', 'domain', 'entities'])
         );
 
         if (fs.existsSync(templatePath) && fs.existsSync(destination)) {
@@ -383,14 +384,14 @@ export default (path: string, template: string) => {
             templatePath,
             nodePath.join(
               destination,
-              tempalte.saveName
-                ? `${tempalte.saveName}.ts`
-                : `${tempalte.name.replace('.txt', '')}Model.ts`
+              template.saveName
+                ? `${template.saveName}.ts`
+                : `${template.name.replace('.txt', '')}Model.ts`
             )
           );
         } else {
           Utils.logError(
-            `Unable to install template "${tempalte.name.replace('.txt', '')}"`
+            `Unable to install template "${template.name.replace('.txt', '')}"`
           );
         }
       });
@@ -426,7 +427,7 @@ export default (path: string, template: string) => {
 
     Object.keys(replacements).forEach((replacement) => {
       const replaceWith = replacements[replacement.toString()].join('\n');
-      const replaceRegex = new RegExp(replacement, 'gi');
+      const replaceRegex = new RE2(replacement, 'gi');
 
       switch (replacement) {
         case ReplaceType.IndexInjectMiddleware:
@@ -438,7 +439,7 @@ export default (path: string, template: string) => {
         case ReplaceType.IndexInjectVar:
           indexContents = indexContents.replace(replaceRegex, replaceWith);
           break;
-        case ReplaceType.ServerRetriveVar:
+        case ReplaceType.ServerRetrieveVar:
           serverContents = serverContents.replace(replaceRegex, replaceWith);
           break;
         case ReplaceType.ServerBeforeStart:
@@ -451,7 +452,7 @@ export default (path: string, template: string) => {
     });
 
     Object.keys(ReplaceType).forEach((type, index) => {
-      const replaceRegex = new RegExp(
+      const replaceRegex = new RE2(
         Object.values(ReplaceType)[parseInt(index.toString())],
         'gi'
       );
