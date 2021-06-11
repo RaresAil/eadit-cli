@@ -36,10 +36,10 @@ describe('Create express project', () => {
         ['create', 'demo'],
         {
           [questions.template]: ENTER,
-          [questions.path]: `Y ${ENTER}`,
-          [questions.yarn]: `Y ${ENTER}`,
+          [questions.path]: `Y${ENTER}`,
+          [questions.yarn]: `Y${ENTER}`,
           [questions.deps]: ENTER,
-          [questions.clearDir]: `Y ${ENTER}`
+          [questions.clearDir]: `Y${ENTER}`
         },
         {
           env: {
@@ -76,10 +76,10 @@ describe('Create express project', () => {
         ['create', 'demo'],
         {
           [questions.template]: ENTER,
-          [questions.path]: `Y ${ENTER}`,
-          [questions.yarn]: `Y ${ENTER}`,
+          [questions.path]: `Y${ENTER}`,
+          [questions.yarn]: `Y${ENTER}`,
           [questions.deps]: `${SPACE}${ENTER}`,
-          [questions.clearDir]: `Y ${ENTER}`
+          [questions.clearDir]: `Y${ENTER}`
         },
         {
           env: {

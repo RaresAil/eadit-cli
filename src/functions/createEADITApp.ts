@@ -15,7 +15,7 @@ const lock = new AsyncLock();
 export enum ReplaceType {
   IndexInjectMiddleware = '// __EADIT_CLI_PLACEHOLDER_INJECT_MIDDLEWARES',
   ServerBeforeStart = '// __EADIT_CLI_PLACEHOLDER_BEFORE_SERVER_START',
-  ServerRetrieveVar = '// __EADIT_CLI_PLACEHOLDER_SERVER_RETRIVE',
+  ServerRetrieveVar = '// __EADIT_CLI_PLACEHOLDER_SERVER_RETRIEVE',
   ServerImport = '// __EADIT_CLI_PLACEHOLDER_SERVER_IMPORTS',
   IndexInjectVar = '// __EADIT_CLI_PLACEHOLDER_INJECT_VARS',
   IndexImport = '// __EADIT_CLI_PLACEHOLDER_IMPORTS'
