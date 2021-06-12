@@ -35,12 +35,12 @@ export interface ReplacementOb {
 export interface ModuleData {
   packageName: string | string[];
   devPackage?: string | string[];
-  template?: string;
+  template?: string | string[];
   templateName?: string;
   templateLocation?: string[];
   multipleTemplates?: {
     name?: string;
-    template: string;
+    template: string | string[];
     location: string[];
   }[];
   replacements?: ReplacementOb[];
@@ -143,6 +143,16 @@ export default (path: string, template: string) => {
 
       useYarn = uYarn;
     }
+
+    const { removeDemoCode }: { removeDemoCode: boolean } = await prompt([
+      {
+        type: 'confirm',
+        name: 'removeDemoCode',
+        message:
+          'Do you want to remove the demo code? (Start with a clean project)',
+        default: false
+      }
+    ]);
 
     const { modules } = await prompt(moduleQuestions);
 
@@ -251,7 +261,9 @@ export default (path: string, template: string) => {
         templatesToInstall = [
           ...templatesToInstall,
           {
-            name: templateToAdd,
+            name: Array.isArray(templateToAdd)
+              ? nodePath.join(...templateToAdd)
+              : templateToAdd,
             location: moduleData.templateLocation,
             saveName: moduleData.templateName
           }
@@ -262,7 +274,9 @@ export default (path: string, template: string) => {
         templatesToInstall = [
           ...templatesToInstall,
           ...extraTemplates.map(({ name, template, location }) => ({
-            name: template,
+            name: Array.isArray(template)
+              ? nodePath.join(...template)
+              : template,
             saveName: name,
             location
           }))
@@ -334,14 +348,9 @@ export default (path: string, template: string) => {
 
       filesInDir.forEach((file) => {
         const filePath = nodePath.join(fullPath, file);
-
-        if (fs.lstatSync(filePath).isDirectory()) {
-          fs.rmdirSync(nodePath.join(filePath), {
-            recursive: true
-          });
-        } else {
-          fs.unlinkSync(filePath);
-        }
+        fs.rmSync(nodePath.join(filePath), {
+          recursive: true
+        });
       });
     }
 
@@ -356,15 +365,9 @@ export default (path: string, template: string) => {
         return false;
       }
 
-      const isDir = fs.lstatSync(itemPath).isDirectory();
-      if (isDir) {
-        fs.rmdirSync(itemPath, {
-          recursive: true
-        });
-        return true;
-      }
-
-      fs.unlinkSync(itemPath);
+      fs.rmSync(itemPath, {
+        recursive: true
+      });
       return true;
     });
 
@@ -430,7 +433,9 @@ export default (path: string, template: string) => {
                 destination,
                 template.saveName
                   ? `${template.saveName}.ts`
-                  : `${template.name.replace('.txt', '')}Model.ts`
+                  : `${nodePath
+                      .basename(template.name)
+                      .replace('.txt', '')}Model.ts`
               )
             );
             templateInstalled = true;
@@ -438,10 +443,9 @@ export default (path: string, template: string) => {
         } finally {
           if (!templateInstalled) {
             Utils.logError(
-              `Unable to install template "${template.name.replace(
-                '.txt',
-                ''
-              )}"`
+              `Unable to install template "${nodePath
+                .basename(template.name)
+                .replace('.txt', '')}"`
             );
           }
         }
@@ -455,6 +459,8 @@ export default (path: string, template: string) => {
 
     const indexTS = nodePath.join(fullPath, 'src', 'index.ts');
     const serverTS = nodePath.join(fullPath, 'src', 'app', 'Server.ts');
+
+    const projectSrcRoot = nodePath.join(fullPath, 'src');
 
     let indexContents = '';
     let serverContents = '';
@@ -524,6 +530,49 @@ export default (path: string, template: string) => {
       Utils.log(
         colors.green('Templates for extra dependencies injected.'),
         '\n'
+      );
+    }
+
+    if (removeDemoCode) {
+      const templateFile: {
+        demoFiles?: string[];
+      } = JSON.parse(
+        fs.readFileSync(nodePath.join(projectSrcRoot, '..', '.template.json'), {
+          encoding: 'utf8'
+        })
+      ) ?? { demoFiles: [] };
+
+      if ((templateFile?.demoFiles?.length ?? 0) > 0) {
+        templateFile!.demoFiles!.map((subPath) => {
+          const subPathParsed = nodePath.join(...subPath.split('/'));
+          const absPath = nodePath.join(projectSrcRoot, subPathParsed);
+
+          fs.rmSync(absPath, {
+            recursive: true
+          });
+          return true;
+        });
+      }
+
+      Utils.ReplaceAllInDir(
+        projectSrcRoot,
+        [
+          new RE2(
+            /(\/\/ __EADIT_CLI_PLACEHOLDER_DEMO_GROUP_START)[\s\S]*?(\/\/ __EADIT_CLI_PLACEHOLDER_DEMO_GROUP_END)/gm
+          ),
+          new RE2(/^.* \/\/ __EADIT_CLI_PLACEHOLDER_DEMO_LINE$/gm)
+        ],
+        ''
+      );
+    } else {
+      Utils.ReplaceAllInDir(
+        projectSrcRoot,
+        [
+          new RE2(/\/\/ __EADIT_CLI_PLACEHOLDER_DEMO_LINE/gm),
+          new RE2(/\/\/ __EADIT_CLI_PLACEHOLDER_DEMO_GROUP_START/gm),
+          new RE2(/\/\/ __EADIT_CLI_PLACEHOLDER_DEMO_GROUP_END/gm)
+        ],
+        ''
       );
     }
 

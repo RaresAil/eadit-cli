@@ -4,9 +4,7 @@
   "description": "CLI for '@adr-express-ts/core'",
   "main": "bin/index.js",
   "preferGlobal": true,
-  "bin": {
-    "eadit-cli": "bin/commands.js"
-  },
+  "bin": "bin/commands.js",
   "types": "bin",
   "files": [
     "bin/*"

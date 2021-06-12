@@ -30,7 +30,7 @@ export default class AuthorizationCodeGrant {
   private client: Client = {
     grants: ['authorization_code'],
     id: '',
-    redirectUris: ['http://redirect']
+    redirectUris: ['/api/oauth2-code-grant/redirect']
   };
 
   private user: User = {

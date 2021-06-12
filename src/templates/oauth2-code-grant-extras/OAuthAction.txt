@@ -1,0 +1,27 @@
+import {
+  Action,
+  Retrieve,
+  Response,
+  Post,
+  Get,
+  Query
+} from '@adr-express-ts/core';
+import { Response as ExpressResponse } from 'express';
+
+@Action('/oauth2-code-grant')
+export default class OAuth2CodeGrantAction {
+  @Post('/authorize', ['OAuth2.CodeGrant'])
+  public code(@Response res: ExpressResponse): any {
+    return res.end();
+  }
+
+  @Post('/token', ['OAuth2.CodeGrantToken'])
+  public token(@Response res: ExpressResponse): any {
+    return res.end();
+  }
+
+  @Get('/redirect')
+  public red(@Response res: ExpressResponse, @Query query: any): any {
+    return res.json(query);
+  }
+}

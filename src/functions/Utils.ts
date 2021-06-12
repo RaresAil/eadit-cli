@@ -1,5 +1,6 @@
 import os from 'os';
 import fs from 'fs';
+import RE2 from 're2';
 import nodePath from 'path';
 import { execSync } from 'child_process';
 
@@ -120,6 +121,45 @@ export default abstract class Utils {
             destPath.replace('.txt', '.ts'),
             fs.constants.COPYFILE_FICLONE
           );
+    });
+  }
+
+  public static ReplaceAllInFile(
+    file: string,
+    regex: RE2[],
+    replacement: string
+  ) {
+    let fileContents = fs.readFileSync(file, {
+      encoding: 'utf8'
+    });
+
+    fileContents = regex.reduce(
+      (acc: string, current: RE2) => acc.replace(current, replacement),
+      fileContents
+    );
+
+    fs.writeFileSync(file, fileContents, {
+      encoding: 'utf8'
+    });
+  }
+
+  public static ReplaceAllInDir(
+    root: string,
+    regex: RE2[],
+    replacement: string
+  ) {
+    fs.readdirSync(root, { withFileTypes: true }).map((entry) => {
+      const rootPath = nodePath.join(root, entry.name);
+
+      if (entry.isDirectory()) {
+        return Utils.ReplaceAllInDir(rootPath, regex, replacement);
+      }
+
+      if (nodePath.extname(rootPath) !== '.ts') {
+        return null;
+      }
+
+      return Utils.ReplaceAllInFile(rootPath, regex, replacement);
     });
   }
 }

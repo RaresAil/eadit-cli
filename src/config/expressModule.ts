@@ -216,9 +216,27 @@ Injector.inject('Sequelize', new Sequelize(
       {
         template: 'oauth2',
         location: ['src', 'auth']
+      },
+      {
+        template: ['oauth2-code-grant-extras', 'OAuthAction.txt'],
+        location: ['src', 'actions']
       }
     ],
-    replacements: [...cookieParserReplacements]
+    replacements: [
+      ...cookieParserReplacements,
+      {
+        type: ReplaceType.IndexImport,
+        with: "import AuthorizationCodeGrant from './auth/AuthorizationCodeGrant';"
+      },
+      {
+        type: ReplaceType.IndexInjectVar,
+        with: "Injector.inject('AuthorizationCodeGrant', AuthorizationCodeGrant);"
+      },
+      {
+        type: ReplaceType.IndexInjectMiddleware,
+        with: ' bodyParser.urlencoded({ extended: false }),'
+      }
+    ]
   }
 };
 

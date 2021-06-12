@@ -9,7 +9,7 @@ import { execute, ENTER, SPACE } from '../utils/cmd';
 import questions from '../utils/questions';
 
 const clearProject = (done: Mocha.Done) => {
-  const args = [
+  fs.rm(
     path.join(process.cwd(), 'demo'),
     {
       recursive: true
@@ -17,12 +17,15 @@ const clearProject = (done: Mocha.Done) => {
     () => {
       done();
     }
-  ];
-  if (require('fs')?.rm) {
-    (fs.rm as any)(...args);
-  } else {
-    (fs.rmdir as any)(...args);
-  }
+  );
+};
+
+const globalAnswers = {
+  [questions.template]: ENTER,
+  [questions.removeDemoCode]: `N${ENTER}`,
+  [questions.path]: `Y${ENTER}`,
+  [questions.yarn]: `Y${ENTER}`,
+  [questions.clearDir]: `Y${ENTER}`
 };
 
 describe('Create express project', () => {
@@ -35,11 +38,8 @@ describe('Create express project', () => {
         'bin/commands.js',
         ['create', 'demo'],
         {
-          [questions.template]: ENTER,
-          [questions.path]: `Y${ENTER}`,
-          [questions.yarn]: `Y${ENTER}`,
-          [questions.deps]: ENTER,
-          [questions.clearDir]: `Y${ENTER}`
+          ...globalAnswers,
+          [questions.deps]: ENTER
         },
         {
           env: {
@@ -76,11 +76,8 @@ describe('Create express project', () => {
         'bin/commands.js',
         ['create', 'demo'],
         {
-          [questions.template]: ENTER,
-          [questions.path]: `Y${ENTER}`,
-          [questions.yarn]: `Y${ENTER}`,
-          [questions.deps]: `${SPACE}${ENTER}`,
-          [questions.clearDir]: `Y${ENTER}`
+          ...globalAnswers,
+          [questions.deps]: `${SPACE}${ENTER}`
         },
         {
           env: {
