@@ -1,12 +1,10 @@
 {
-  "name": "eadit-cli",
-  "version": "6.2.0",
+  "name": "@adr-express-ts/cli",
+  "version": "7.0.0",
   "description": "CLI for '@adr-express-ts/core'",
   "main": "bin/index.js",
   "preferGlobal": true,
-  "bin": {
-    "eadit-cli": "bin/commands.js"
-  },
+  "bin": "bin/commands.js",
   "types": "bin",
   "files": [
     "bin/*"
@@ -16,7 +14,8 @@
     "lint": "eslint src/**/*.ts",
     "version": "npm run build",
     "test": "npm run build && mocha",
-    "dev": "nodemon src/commands.ts"
+    "dev": "NODE_ENV=dev nodemon src/commands.ts",
+    "bin-dev": "npm run build && NODE_ENV=dev node bin/commands.js"
   },
   "repository": {
     "type": "git",

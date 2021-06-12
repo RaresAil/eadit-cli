@@ -1,0 +1,111 @@
+import { Client, Token, User, AuthorizationCodeModel } from 'oauth2-server';
+import OAuthServer, { AuthorizationCode } from '@adr-express-ts/oauth2';
+import { InjectType } from '@adr-express-ts/core/lib/@types';
+import { Inject, Injector } from '@adr-express-ts/core';
+
+import CodeGrantTokenMiddleware from './middlewares/CodeGrantTokenMiddleware';
+import CodeGrantMiddleware from './middlewares/CodeGrantMiddleware';
+
+@Inject
+export default class AuthorizationCodeGrant {
+  public readonly server: OAuthServer;
+
+  constructor() {
+    Injector.inject(
+      'OAuth2.CodeGrant',
+      CodeGrantMiddleware,
+      InjectType.Middleware
+    );
+    Injector.inject(
+      'OAuth2.CodeGrantToken',
+      CodeGrantTokenMiddleware,
+      InjectType.Middleware
+    );
+
+    this.server = new OAuthServer({
+      model: this.Model
+    });
+  }
+
+  private client: Client = {
+    grants: ['authorization_code'],
+    id: '',
+    redirectUris: ['/api/oauth2-code-grant/redirect']
+  };
+
+  private user: User = {
+    id: '',
+    name: ''
+  };
+
+  private get Model(): AuthorizationCodeModel {
+    return {
+      getAuthorizationCode: async (
+        code: string
+      ): Promise<AuthorizationCode | null> => {
+        // Get the auth code!
+        return {
+          authorizationCode: code,
+          client: this.client,
+          user: this.user,
+          expiresAt: new Date(Date.now() + 36000),
+          redirectUri: this.client.redirectUris?.[0] ?? '',
+          codeChallenge: 'test',
+          codeChallengeMethod: 'plain'
+        };
+      },
+      saveAuthorizationCode: async (
+        code: AuthorizationCode,
+        client: Client,
+        user: User
+      ): Promise<AuthorizationCode> => {
+        // SAVE THE AUTH CODE
+        return code;
+      },
+      revokeAuthorizationCode: async (
+        code: AuthorizationCode
+      ): Promise<boolean> => {
+        // REVOKE THE AUTH TOKEN
+        return true;
+      },
+      getClient: async (
+        clientId: string,
+        clientSecret: string
+      ): Promise<Client | null> => {
+        // GET THE CLIENT
+        return this.client;
+      },
+      saveToken: async (
+        token: Token,
+        client: Client,
+        user: User
+      ): Promise<Token | null> => {
+        // SAVE THE ACCESS TOKEN
+        return {
+          ...token,
+          client,
+          user,
+          scope: 'test'
+        };
+      },
+      getAccessToken: async (accessToken: string): Promise<Token | null> => {
+        const token: Token = {
+          accessToken,
+          client: this.client,
+          user: this.user,
+          accessTokenExpiresAt: new Date(Date.now() + 36000)
+        };
+        // GET THE ACCESS TOKEN
+
+        return token;
+      },
+      verifyScope: async (
+        token: Token,
+        scope: string | string[]
+      ): Promise<boolean> => {
+        // VERIFY THE SCOPE
+        return false;
+      }
+    };
+  }
+}

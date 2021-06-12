@@ -1,0 +1,45 @@
+import { Middleware } from '@adr-express-ts/core/lib/@types';
+import { Request, Response, NextFunction } from 'express';
+import { Inject, Retrieve } from '@adr-express-ts/core';
+
+import PasswordGrant from '../PasswordGrant';
+import { getJWT } from '../utils';
+
+/**
+ * This middleware is injected in auth/PasswordGrant.ts as OAuth2.Restrict
+ */
+
+@Inject
+export default class OAuthRestrictMiddleware implements Middleware {
+  @Retrieve('PasswordGrant')
+  private passwordGrant?: PasswordGrant;
+  private functionMiddleware?: any;
+
+  public async middleware(
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<any> {
+    if (!this.functionMiddleware) {
+      this.functionMiddleware = this.passwordGrant?.server.authenticate();
+      if (!this.functionMiddleware) {
+        throw new Error('INVALID MIDDLEWARE');
+      }
+    }
+
+    req.headers.authorization = this.validateSession(
+      (req.signedCookies ?? {})['cookie-name']
+    );
+
+    return this.functionMiddleware(req, res, next);
+  }
+
+  private validateSession = (sessionCookie?: string): string | undefined => {
+    if (!sessionCookie) {
+      return;
+    }
+
+    const sessionData = getJWT<any>(sessionCookie);
+    return sessionData?.token ? `Bearer ${sessionData?.token}` : undefined;
+  };
+}

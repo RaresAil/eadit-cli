@@ -1,7 +1,11 @@
 import os from 'os';
 import fs from 'fs';
+import RE2 from 're2';
 import nodePath from 'path';
 import { execSync } from 'child_process';
+
+import Config from '../index';
+import createConfigFile from './createConfigFile';
 
 export default abstract class Utils {
   public static getUserDic(): string | undefined {
@@ -71,5 +75,91 @@ export default abstract class Utils {
   public static logError(...args: any[]) {
     // eslint-disable-next-line no-console
     console.error(...args);
+  }
+
+  public static verifyConfigAndMigrate(fullPath?: string): boolean {
+    const projectPath = fullPath ?? Config?.userDir;
+    if (!projectPath) {
+      return false;
+    }
+
+    const packagePath = nodePath.join(projectPath, 'package.json');
+    const packageJson: boolean = fs.existsSync(packagePath);
+    if (packageJson) {
+      const contents = JSON.parse(
+        fs.readFileSync(packagePath).toString('utf8')
+      );
+
+      if (contents[Config.configKey]) {
+        return true;
+      }
+    }
+
+    const hasLegacyConfigFile: boolean = fs.existsSync(
+      nodePath.join(projectPath, Config.legacyConfigName)
+    );
+    if (hasLegacyConfigFile) {
+      return createConfigFile(projectPath);
+    }
+
+    return false;
+  }
+
+  public static copyDir(source: string, destination: string) {
+    fs.mkdirSync(destination, {
+      recursive: true
+    });
+
+    fs.readdirSync(source, { withFileTypes: true }).map((entry) => {
+      const srcPath = nodePath.join(source, entry.name);
+      const destPath = nodePath.join(destination, entry.name);
+
+      return entry.isDirectory()
+        ? Utils.copyDir(srcPath, destPath)
+        : fs.copyFileSync(
+            srcPath,
+            destPath.replace('.txt', '.ts'),
+            fs.constants.COPYFILE_FICLONE
+          );
+    });
+  }
+
+  public static ReplaceAllInFile(
+    file: string,
+    regex: RE2[],
+    replacement: string
+  ) {
+    let fileContents = fs.readFileSync(file, {
+      encoding: 'utf8'
+    });
+
+    fileContents = regex.reduce(
+      (acc: string, current: RE2) => acc.replace(current, replacement),
+      fileContents
+    );
+
+    fs.writeFileSync(file, fileContents, {
+      encoding: 'utf8'
+    });
+  }
+
+  public static ReplaceAllInDir(
+    root: string,
+    regex: RE2[],
+    replacement: string
+  ) {
+    fs.readdirSync(root, { withFileTypes: true }).map((entry) => {
+      const rootPath = nodePath.join(root, entry.name);
+
+      if (entry.isDirectory()) {
+        return Utils.ReplaceAllInDir(rootPath, regex, replacement);
+      }
+
+      if (nodePath.extname(rootPath) !== '.ts') {
+        return null;
+      }
+
+      return Utils.ReplaceAllInFile(rootPath, regex, replacement);
+    });
   }
 }

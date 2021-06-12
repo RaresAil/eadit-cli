@@ -4,7 +4,6 @@ import nodePath from 'path';
 import RE2 from 're2';
 import fs from 'fs';
 
-import { EADITConfig } from '../config/default';
 import Config from '../index';
 import Utils from './Utils';
 
@@ -25,34 +24,11 @@ export default async () => {
     return;
   }
 
-  const configFile = fs
-    .readFileSync(nodePath.join(Config.userDir, Config.configName))
-    .toString('utf8');
   try {
-    const configData = JSON.parse(configFile) as EADITConfig;
-    if (!configData || !configData.templates) {
-      Utils.logError(colors.bold(colors.red('Invalid configuration file.')));
-      return;
-    }
-
-    let selectedTemplate = configData.templates[0];
-    if (configData.templates.length > 1) {
-      selectedTemplate = await prompt([
-        {
-          type: 'list',
-          name: 'template',
-          message: 'Your app use multiple templates, choose one.',
-          choices: Config.templates
-        }
-      ]);
-    }
-
-    if (!selectedTemplate || !configData.templates.includes(selectedTemplate)) {
-      Utils.logError(colors.bold(colors.red('Invalid template.')));
-      return;
-    }
-
-    const types = Object.keys(Config.fileCreate[selectedTemplate.toString()]);
+    const selectedTemplate = Config.templates[0];
+    const fileCreate = Config.fileCreate[selectedTemplate.toString()];
+    const paths = Config.paths[selectedTemplate.toString()];
+    const types = Object.keys(fileCreate);
     const { type } = await prompt([
       {
         type: 'list',
@@ -62,31 +38,22 @@ export default async () => {
       }
     ]);
 
-    if (
-      !type ||
-      !Object.keys(Config.fileCreate[selectedTemplate.toString()]).includes(
-        type
-      )
-    ) {
+    if (!type || !Object.keys(fileCreate).includes(type)) {
       Utils.logError(colors.bold(colors.red('Invalid type.')));
       return;
     }
 
-    let pathToSave = nodePath.join(
-      Config.userDir,
-      configData.paths[selectedTemplate.toString()][type.toString()]
-    );
+    let pathToSave = nodePath.join(Config.userDir, paths[type.toString()]);
     if (!fs.existsSync(pathToSave)) {
       Utils.logError(
         `${colors.bold(colors.red('The path'))} %o`,
-        configData.paths[selectedTemplate.toString()][type.toString()],
+        paths[type.toString()],
         colors.bold(colors.red("doesn't exists!"))
       );
       return;
     }
 
-    const { ask, file, suffix, recursiveDir } =
-      Config.fileCreate[selectedTemplate.toString()][type.toString()];
+    const { ask, file, suffix, recursiveDir } = fileCreate[type.toString()];
     if (!fs.existsSync(nodePath.join(Config.root, 'templates', file))) {
       Utils.logError(colors.bold(colors.red('No template was found :(')));
       return;

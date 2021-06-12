@@ -1,7 +1,11 @@
 import colors from 'colors/safe';
 
 import { FileCreateType } from '../index';
-import { ReplaceType, ModulesData } from '../functions/createEADITApp';
+import {
+  ReplaceType,
+  ModulesData,
+  ReplacementOb
+} from '../functions/createEADITApp';
 
 interface ExpressModuleConfig {
   fileTypes: FileCreateType;
@@ -12,6 +16,25 @@ interface ExpressModuleConfig {
   modules: ModulesData;
   endMessage: string;
 }
+
+const cookieParserReplacements: ReplacementOb[] = [
+  {
+    key: 'cookie-parser-import',
+    type: ReplaceType.IndexImport,
+    with: "import cookieParser from 'cookie-parser';"
+  },
+  {
+    key: 'cookie-parser-middle',
+    type: ReplaceType.IndexInjectMiddleware,
+    with: " cookieParser('COOKIE-PARSER-SECRET-TOKEN'),",
+    ask: ['COOKIE-PARSER-SECRET-TOKEN']
+  }
+];
+const urlencodedBodyParser = {
+  key: 'body-parser-urlencoded',
+  type: ReplaceType.IndexInjectMiddleware,
+  with: ' bodyParser.urlencoded({ extended: false }),'
+};
 
 const modulesData: ModulesData = {
   'Morgan (HTTP request logger middleware for node.js)': {
@@ -160,25 +183,16 @@ Injector.inject('Sequelize', new Sequelize(
   'Cookie Parser': {
     packageName: 'cookie-parser',
     devPackage: '@types/cookie-parser',
-    replacements: [
-      {
-        type: ReplaceType.IndexImport,
-        with: "import cookieParser from 'cookie-parser';"
-      },
-      {
-        type: ReplaceType.IndexInjectMiddleware,
-        with: " cookieParser('COOKIE-PARSER-SECRET-TOKEN'),",
-        ask: ['COOKIE-PARSER-SECRET-TOKEN']
-      }
-    ]
+    replacements: [...cookieParserReplacements]
   },
-  'CSRF Middleware (Cookie Parser is required!)': {
-    packageName: 'csrf',
-    devPackage: '@types/csrf',
+  'CSRF Middleware': {
+    packageName: ['csrf', 'cookie-parser'],
+    devPackage: ['@types/csrf', '@types/cookie-parser'],
     template: 'csrf_middleware.txt',
     templateName: 'CSRFMiddleware',
     templateLocation: ['src', 'middlewares'],
     replacements: [
+      ...cookieParserReplacements,
       {
         type: ReplaceType.IndexImport,
         with: "import CSRFMiddleware, { CSRFProtectionMiddleware } from './middlewares/CSRFMiddleware';"
@@ -191,6 +205,84 @@ Injector.inject('Sequelize', new Sequelize(
         type: ReplaceType.IndexInjectVar,
         with: "Injector.inject('CSRFProtectionMiddleware', CSRFProtectionMiddleware, InjectType.Middleware);"
       }
+    ]
+  },
+  'OAuth2 (Authorization Code Grant with PKCE)': {
+    packageName: ['@adr-express-ts/oauth2', 'cookie-parser', 'jsonwebtoken'],
+    devPackage: [
+      '@types/cookie-parser',
+      '@types/jsonwebtoken',
+      '@types/oauth2-server'
+    ],
+    multipleTemplates: [
+      {
+        template: 'oauth2-code-grant',
+        location: ['src', 'auth']
+      },
+      {
+        template: 'oauth2',
+        location: ['src', 'auth']
+      },
+      {
+        template: ['oauth2-code-grant-extras', 'OAuthCodeGrantAction.txt'],
+        location: ['src', 'actions']
+      }
+    ],
+    replacements: [
+      ...cookieParserReplacements,
+      {
+        type: ReplaceType.IndexImport,
+        with: "import AuthorizationCodeGrant from './auth/AuthorizationCodeGrant';"
+      },
+      {
+        type: ReplaceType.IndexInjectVar,
+        with: "Injector.inject('AuthorizationCodeGrant', AuthorizationCodeGrant);"
+      },
+      urlencodedBodyParser
+    ]
+  },
+  'OAuth2 (Password Grant)': {
+    packageName: ['@adr-express-ts/oauth2', 'cookie-parser', 'jsonwebtoken'],
+    devPackage: [
+      '@types/cookie-parser',
+      '@types/jsonwebtoken',
+      '@types/oauth2-server'
+    ],
+    multipleTemplates: [
+      {
+        template: 'oauth2-password-grant',
+        location: ['src', 'auth']
+      },
+      {
+        template: 'oauth2',
+        location: ['src', 'auth']
+      },
+      {
+        template: [
+          'oauth2-password-grant-extras',
+          'OAuthPasswordGrantAction.txt'
+        ],
+        location: ['src', 'actions']
+      },
+      {
+        template: [
+          'oauth2-password-grant-extras',
+          'OAuthPasswordGrantResponder.txt'
+        ],
+        location: ['src', 'responders']
+      }
+    ],
+    replacements: [
+      ...cookieParserReplacements,
+      {
+        type: ReplaceType.IndexImport,
+        with: "import PasswordGrant from './auth/PasswordGrant';"
+      },
+      {
+        type: ReplaceType.IndexInjectVar,
+        with: "Injector.inject('PasswordGrant', PasswordGrant);"
+      },
+      urlencodedBodyParser
     ]
   }
 };

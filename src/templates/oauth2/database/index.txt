@@ -1,0 +1,34 @@
+import { Configuration, Inject, Retrieve } from '@adr-express-ts/core';
+import { InjectedEntity } from '@adr-express-ts/core/lib/@types';
+
+@Inject
+export default class OAuthDatabase implements InjectedEntity {
+  @Retrieve('Configuration')
+  private config?: Configuration;
+
+  public get Connection() {
+    // Add your db connection
+    return {};
+  }
+
+  public getModel(name: 'model1' | 'model2') {
+    // Return the db model
+    return {};
+  }
+
+  async onLoad() {
+    await this.initDb();
+  }
+
+  private get Log() {
+    return this.config?.debug?.log ?? (() => {});
+  }
+
+  private async initDb() {
+    this.Log('Connecting to OAuth database');
+
+    // Connect to the db
+
+    this.Log('OAuth database connected');
+  }
+}

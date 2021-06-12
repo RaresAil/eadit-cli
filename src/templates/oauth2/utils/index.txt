@@ -1,0 +1,73 @@
+import { CookieOptions } from 'express';
+import jwt from 'jsonwebtoken';
+
+export const addIfExists = <T>(
+  item: T,
+  name: string,
+  object: { [key: string]: any },
+  transformValue: (item: T) => T = (item) => item
+) => {
+  if (item) {
+    object[name.toString()] = transformValue(item);
+  }
+};
+
+//
+// This is only for MongoDB!
+//
+// export const formatDBObject: mongoose.ToObjectOptions = {
+//   transform: (doc: any, ret: any) => {
+//     const { _id, __v, ...data } = ret;
+
+//     return {
+//       ...data,
+//       id: _id
+//     };
+//   }
+// };
+
+export const cookieOptions = (expireMS: number): CookieOptions => ({
+  signed: true,
+  httpOnly: true,
+  maxAge: expireMS,
+  secure: false // Change to TRUE when in production
+});
+
+const JWTSecret = 'secret';
+export const cookieSecret = 'secret';
+
+export const createJWT = <T>(data: T, expireMS: number) =>
+  jwt.sign(
+    {
+      data
+    },
+    JWTSecret,
+    {
+      expiresIn: expireMS
+    }
+  );
+
+export const getJWT = <T>(token: string): T | null => {
+  if (!token?.trim()) {
+    return null;
+  }
+
+  const verified = jwt.verify(
+    (token ?? '').toString().trim(),
+    JWTSecret
+  ) as JWTToken;
+
+  if (!(verified.exp && verified.data && verified.iat)) {
+    return null;
+  }
+
+  return verified.data as T;
+};
+
+export interface JWTToken {
+  data: {
+    [key: string]: any;
+  };
+  exp: number;
+  iat: number;
+}

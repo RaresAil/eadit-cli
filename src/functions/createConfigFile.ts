@@ -1,69 +1,53 @@
 import fs from 'fs';
 import path from 'path';
 import colors from 'colors/safe';
-import { prompt } from 'inquirer';
 
 import Utils from './Utils';
 import Config from '../index';
-import defaultConfig from '../config/default';
 
-const moduleQuestions: any[] = [
-  {
-    type: 'list',
-    name: 'template',
-    message: 'What type of template do you have?',
-    choices: Config.templates
-  }
-];
-
-export default async (): Promise<void> => {
+export default (fullPath?: string): boolean => {
   try {
-    if (!Config || !Config.userDir) {
-      Utils.log(
-        colors.red(
-          'You can only generate a config file in the same directory with packages.json'
-        )
-      );
-      return;
+    const projectPath = fullPath ?? Config?.userDir;
+    if (!projectPath) {
+      throw new Error('NOT_FOUND');
     }
 
-    const configFile: boolean = fs.existsSync(
-      path.join(Config.userDir, Config.configName)
-    );
+    const packagePath = path.join(projectPath, 'package.json');
+    const packageJson: boolean = fs.existsSync(packagePath);
+
+    if (!packageJson) {
+      throw new Error('NOT_FOUND');
+    }
+
+    const legacyConfigPath = path.join(projectPath, Config.legacyConfigName);
+    const configFile: boolean = fs.existsSync(legacyConfigPath);
     if (configFile) {
-      Utils.log(colors.red('A configuration file already exists.'));
-      return;
-    }
-
-    const packagesFile: boolean = fs.existsSync(
-      path.join(Config.userDir, 'package.json')
-    );
-    if (!packagesFile) {
       Utils.log(
-        colors.red(
-          'You can only generate a config file in the same directory with package.json'
+        colors.yellow(
+          'A legacy configuration file was found. (It will be deleted)'
         )
       );
-      return;
+      fs.unlinkSync(legacyConfigPath);
     }
 
-    let module = Config.templates[0];
+    const contents = JSON.parse(fs.readFileSync(packagePath).toString('utf8'));
+    contents[Config.configKey] = true;
+    fs.writeFileSync(packagePath, JSON.stringify(contents, null, 2));
 
-    if (Config.templates.length > 1) {
-      const { template } = await prompt(moduleQuestions);
-      module = template;
+    Utils.log(colors.green('Configuration set!'));
+    return true;
+  } catch (error) {
+    switch (error.message) {
+      case 'NOT_FOUND':
+        Utils.log(
+          colors.red(
+            'You can only generate a config file in the same directory with package.json'
+          )
+        );
+        return false;
     }
 
-    if (!module) {
-      Utils.log(colors.red('Unknown Template'));
-      return;
-    }
-
-    fs.writeFileSync(
-      path.join(Config.userDir, Config.configName),
-      JSON.stringify(defaultConfig([module]), null, 2)
-    );
-  } catch {
     Utils.log(colors.red('Unknown Error'));
+    return false;
   }
 };
