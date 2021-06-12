@@ -43,7 +43,8 @@ describe('Create express project', () => {
         },
         {
           env: {
-            DEBUG: true
+            DEBUG: true,
+            NODE_ENV: 'dev'
           }
         }
       )) as Promise<any>
@@ -53,7 +54,7 @@ describe('Create express project', () => {
       .split(EOL)
       .pop();
 
-    expect(response).to.contain('In the same folder with eaditconfig.json');
+    expect(response).to.contain('In the same folder with package.json');
 
     await new Promise((resolve, reject) => {
       exec(
@@ -83,7 +84,8 @@ describe('Create express project', () => {
         },
         {
           env: {
-            DEBUG: true
+            DEBUG: true,
+            NODE_ENV: 'dev'
           }
         }
       )) as Promise<any>
@@ -93,7 +95,7 @@ describe('Create express project', () => {
       .split(EOL)
       .pop();
 
-    expect(response).to.contain('In the same folder with eaditconfig.json');
+    expect(response).to.contain('In the same folder with package.json');
     expect(
       require(path.join(process.cwd(), 'demo', 'package.json')).dependencies
     ).to.haveOwnProperty('morgan');
