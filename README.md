@@ -2,6 +2,18 @@
 
 This is a CLI for [@adr-express-ts/core](https://github.com/RaresAil/adr-express-ts)
 
+## Current Modules in CLI
+
+- Morgan
+- Mongoose
+- Sequelize
+- JSON Web Token
+- Cookie Parser
+- CSRF Middleware
+- OAuth2
+  - Authorization Code Grant with PKCE
+  - Password Grant
+
 ## Install global
 
 For Yarn
@@ -47,11 +59,12 @@ npx @adr-express-ts/cli create
 ```
 
 You will get the following result:
+
 ```bash
 ? What type of file do you want to create? (Use arrow keys)
-❯ Action 
-  Domain 
-  Responder 
-  Entity 
+❯ Action
+  Domain
+  Responder
+  Entity
   Middleware
 ```

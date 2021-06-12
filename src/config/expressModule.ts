@@ -185,13 +185,14 @@ Injector.inject('Sequelize', new Sequelize(
     devPackage: '@types/cookie-parser',
     replacements: [...cookieParserReplacements]
   },
-  'CSRF Middleware (Cookie Parser is required!)': {
-    packageName: 'csrf',
-    devPackage: '@types/csrf',
+  'CSRF Middleware': {
+    packageName: ['csrf', 'cookie-parser'],
+    devPackage: ['@types/csrf', '@types/cookie-parser'],
     template: 'csrf_middleware.txt',
     templateName: 'CSRFMiddleware',
     templateLocation: ['src', 'middlewares'],
     replacements: [
+      ...cookieParserReplacements,
       {
         type: ReplaceType.IndexImport,
         with: "import CSRFMiddleware, { CSRFProtectionMiddleware } from './middlewares/CSRFMiddleware';"
