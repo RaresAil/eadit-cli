@@ -6,7 +6,7 @@ import nodePath from 'path';
 import RE2 from 're2';
 import fs from 'fs';
 
-import defaultConfig from '../config/default';
+import createConfigFile from './createConfigFile';
 import Config from '../index';
 import Utils from './Utils';
 
@@ -527,20 +527,7 @@ export default (path: string, template: string) => {
       );
     }
 
-    try {
-      fs.writeFileSync(
-        nodePath.join(fullPath, Config.configName),
-        JSON.stringify(defaultConfig([template.toString()]), null, 2)
-      );
-    } catch {
-      Utils.logError(
-        colors.red('Unable to generate config file.'),
-        '\n',
-        'Use',
-        colors.cyan(`npx ${Config.name} --init`),
-        '\n'
-      );
-    }
+    createConfigFile(fullPath);
 
     Utils.log(
       colors.green('Complete!'),
@@ -561,7 +548,7 @@ export default (path: string, template: string) => {
       '\n',
       `By using ${colors.cyan(`npx ${Config.name} create`)}`,
       '\n',
-      `In the same folder with ${colors.cyan(`${Config.configName}`)}`
+      `In the same folder with ${colors.cyan('package.json')}`
     );
   });
 };

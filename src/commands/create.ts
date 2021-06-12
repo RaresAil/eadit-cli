@@ -2,7 +2,6 @@ import fs from 'fs';
 import nodePath from 'path';
 import program from 'commander';
 import colors from 'colors/safe';
-import { prompt } from 'inquirer';
 
 import Config from '../index';
 import Utils from '../functions/Utils';
@@ -16,25 +15,13 @@ export default () => {
       return;
     }
 
-    const hasConfigFile: boolean = fs.existsSync(
-      nodePath.join(Config.userDir, Config.configName)
-    );
-    if (!hasConfigFile) {
+    if (!Utils.verifyConfigAndMigrate()) {
       if (!path || path.trim() === '') {
         Utils.log(colors.red('A path is required.'), '\n');
         return;
       }
 
-      prompt([
-        {
-          type: 'list',
-          name: 'template',
-          message: 'What template do you want?',
-          choices: Config.templates
-        }
-      ]).then(({ template }) => {
-        createApp(path, template);
-      });
+      createApp(path, Config.templates[0]);
     } else {
       createFileByType();
     }

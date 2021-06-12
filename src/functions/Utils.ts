@@ -3,6 +3,9 @@ import fs from 'fs';
 import nodePath from 'path';
 import { execSync } from 'child_process';
 
+import Config from '../index';
+import createConfigFile from './createConfigFile';
+
 export default abstract class Utils {
   public static getUserDic(): string | undefined {
     let findCommand;
@@ -71,6 +74,34 @@ export default abstract class Utils {
   public static logError(...args: any[]) {
     // eslint-disable-next-line no-console
     console.error(...args);
+  }
+
+  public static verifyConfigAndMigrate(fullPath?: string): boolean {
+    const projectPath = fullPath ?? Config?.userDir;
+    if (!projectPath) {
+      return false;
+    }
+
+    const packagePath = nodePath.join(projectPath, 'package.json');
+    const packageJson: boolean = fs.existsSync(packagePath);
+    if (packageJson) {
+      const contents = JSON.parse(
+        fs.readFileSync(packagePath).toString('utf8')
+      );
+
+      if (contents[Config.configKey]) {
+        return true;
+      }
+    }
+
+    const hasLegacyConfigFile: boolean = fs.existsSync(
+      nodePath.join(projectPath, Config.legacyConfigName)
+    );
+    if (hasLegacyConfigFile) {
+      return createConfigFile(projectPath);
+    }
+
+    return false;
   }
 
   public static copyDir(source: string, destination: string) {

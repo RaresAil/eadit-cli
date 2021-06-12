@@ -1,6 +1,6 @@
 {
   "name": "@adr-express-ts/cli",
-  "version": "1.0.0",
+  "version": "7.0.0",
   "description": "CLI for '@adr-express-ts/core'",
   "main": "bin/index.js",
   "preferGlobal": true,

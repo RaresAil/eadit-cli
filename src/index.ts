@@ -4,7 +4,6 @@ import path from 'path';
 import Utils from './functions/Utils';
 import { ModulesData } from './functions/createEADITApp';
 import ExpressModuleConfig from './config/expressModule';
-import DiscordModuleConfig from './config/discordModule';
 
 const root = __dirname;
 let version: string = '0.0.0';
@@ -27,7 +26,8 @@ interface CLIConfig {
   root: string;
   version: string;
   name: string;
-  configName: string;
+  legacyConfigName: string;
+  configKey: string;
   userDir?: string;
   templates: string[];
 
@@ -71,38 +71,33 @@ export default {
   root,
   version,
   name,
-  configName: 'eaditconfig.json',
+  legacyConfigName: 'eaditconfig.json',
+  configKey: 'adr-express-ts',
   userDir: dir,
 
-  templates: ['Express', 'Discord.js'],
+  templates: ['Express'],
 
   deleteOnClone: {
-    Express: ['.git', 'yarn.lock', 'package-lock.json', '.github'],
-    'Discord.js': ['.git', 'yarn.lock', 'package-lock.json', '.github']
+    Express: ['.git', 'yarn.lock', 'package-lock.json', '.github']
   },
 
   modules: {
-    Express: ExpressModuleConfig.modules,
-    'Discord.js': DiscordModuleConfig.modules
+    Express: ExpressModuleConfig.modules
   },
 
   paths: {
-    Express: ExpressModuleConfig.paths,
-    'Discord.js': DiscordModuleConfig.paths
+    Express: ExpressModuleConfig.paths
   },
 
   fileCreate: {
-    Express: ExpressModuleConfig.fileTypes,
-    'Discord.js': DiscordModuleConfig.fileTypes
+    Express: ExpressModuleConfig.fileTypes
   },
 
   githubLinks: {
-    Express: ExpressModuleConfig.github,
-    'Discord.js': DiscordModuleConfig.github
+    Express: ExpressModuleConfig.github
   },
 
   endMessage: {
-    Express: ExpressModuleConfig.endMessage,
-    'Discord.js': DiscordModuleConfig.endMessage
+    Express: ExpressModuleConfig.endMessage
   }
 } as CLIConfig;

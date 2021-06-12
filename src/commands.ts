@@ -13,7 +13,7 @@ import createConfigFile from './functions/createConfigFile';
 program
   .version(Config.version)
   .description("CLI for '@adr-express-ts/core'")
-  .option('--init', 'Creates a config file');
+  .option('--init', 'Setup the package.json to use ADR-Express-TS');
 
 const rawCommands = fs.readdirSync(path.join(__dirname, 'commands'));
 rawCommands.forEach((command) => {
