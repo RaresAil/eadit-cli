@@ -533,6 +533,12 @@ export default (path: string, template: string) => {
       );
     }
 
+    const templateFilePath = nodePath.join(
+      projectSrcRoot,
+      '..',
+      '.template.json'
+    );
+
     if (removeDemoCode) {
       const templateFile: {
         demoFiles?: string[];
@@ -576,6 +582,7 @@ export default (path: string, template: string) => {
       );
     }
 
+    fs.unlinkSync(templateFilePath);
     createConfigFile(fullPath);
 
     Utils.log(
