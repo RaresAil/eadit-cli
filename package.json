@@ -1,10 +1,12 @@
 {
   "name": "@adr-express-ts/cli",
-  "version": "7.0.0",
+  "version": "7.0.1",
   "description": "CLI for '@adr-express-ts/core'",
   "main": "bin/index.js",
   "preferGlobal": true,
-  "bin": "bin/commands.js",
+  "bin": {
+    "adr-cli": "bin/commands.js"
+  },
   "types": "bin",
   "files": [
     "bin/*"

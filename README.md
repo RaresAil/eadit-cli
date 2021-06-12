@@ -30,7 +30,7 @@ npm install -g @adr-express-ts/cli
 
 ## Commands
 
-> If is installed globally, the npx should be removed
+> If is installed globally, instead of `npx @adr-express-ts/cli` use `adr-cli`
 
 ### To create a project
 
