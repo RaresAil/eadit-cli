@@ -50,7 +50,7 @@
     "@types/mocha": "^8.2.2",
     "@types/node": "^15.12.2",
     "@typescript-eslint/eslint-plugin": "^4.26.1",
-    "@typescript-eslint/parser": "^4.26.1",
+    "@typescript-eslint/parser": "^4.27.0",
     "chai": "^4.3.4",
     "concat-stream": "^2.0.0",
     "cross-spawn": "^7.0.3",
