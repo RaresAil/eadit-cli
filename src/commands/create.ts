@@ -1,9 +1,9 @@
 import fs from 'fs';
 import nodePath from 'path';
-import program from 'commander';
 import colors from 'colors/safe';
 
 import Config from '../index';
+import { program } from '../commands';
 import Utils from '../functions/Utils';
 import createApp from '../functions/createEADITApp';
 import createFileByType from '../functions/createFileByType';
