@@ -2,13 +2,15 @@
 
 import fs from 'fs';
 import path from 'path';
-import program from 'commander';
+import { Command } from 'commander';
 import colors from 'colors/safe';
 import { execSync } from 'child_process';
 
 import Config from './index';
 import Utils from './functions/Utils';
 import createConfigFile from './functions/createConfigFile';
+
+export const program = new Command();
 
 program
   .version(Config.version)
